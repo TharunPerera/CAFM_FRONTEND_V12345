@@ -174,6 +174,7 @@
 //   printWindow.document.close();
 // }
 
+//chnage now
 /**
  * QR Code utility functions for asset management
  */
