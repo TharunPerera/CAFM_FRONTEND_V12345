@@ -22,6 +22,7 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
   const [loadingAssets, setLoadingAssets] = useState(false);
 
   const frequencyOptions = [
+    { value: "DAYS_1", label: "Every 1 Days" },
     { value: "DAYS_30", label: "Every 30 Days" },
     { value: "DAYS_60", label: "Every 60 Days" },
     { value: "DAYS_90", label: "Every 90 Days" },

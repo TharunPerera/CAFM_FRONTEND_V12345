@@ -2,52 +2,54 @@
 
 // import { useState, useEffect } from "react";
 // import {
+//   Shield,
 //   Users,
-//   Plus,
+//   Eye,
+//   UserPlus,
 //   Search,
 //   Filter,
-//   Edit,
-//   Trash2,
-//   Shield,
-//   Key,
 //   ChevronDown,
 //   RefreshCw,
-//   UserCheck,
 //   Building,
 //   Mail,
+//   Settings,
 // } from "lucide-react";
+// import { permissionService } from "../services/permissionService";
 // import { userService } from "../services/userService";
-// import UserForm from "../components/UserManagement/UserForm";
-// import PermissionAssignment from "../components/UserManagement/PermissionAssignment";
-// import PasswordResetForm from "../components/UserManagement/PasswordResetForm";
+// import PermissionValuesModal from "../components/PermissionManagement/PermissionValuesModal";
+// import UserPermissionAssignmentModal from "../components/PermissionManagement/UserPermissionAssignmentModal";
 
-// const UserManagement = () => {
+// const PermissionManagement = () => {
 //   const [users, setUsers] = useState([]);
 //   const [filteredUsers, setFilteredUsers] = useState([]);
+//   const [permissions, setPermissions] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [filterType, setFilterType] = useState("all");
-//   const [showUserForm, setShowUserForm] = useState(false);
-//   const [showPermissionModal, setShowPermissionModal] = useState(false);
-//   const [showPasswordReset, setShowPasswordReset] = useState(false);
+//   const [showPermissionValues, setShowPermissionValues] = useState(false);
+//   const [showUserPermissionModal, setShowUserPermissionModal] = useState(false);
 //   const [selectedUser, setSelectedUser] = useState(null);
 //   const [isRefreshing, setIsRefreshing] = useState(false);
 
 //   useEffect(() => {
-//     loadUsers();
+//     loadInitialData();
 //   }, []);
 
 //   useEffect(() => {
 //     filterUsers();
 //   }, [users, searchTerm, filterType]);
 
-//   const loadUsers = async () => {
+//   const loadInitialData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await userService.getAllUsers();
-//       setUsers(response.data || []);
+//       const [usersResponse, permissionsResponse] = await Promise.all([
+//         userService.getAllUsers(),
+//         permissionService.getAllPermissions(),
+//       ]);
+//       setUsers(usersResponse.data || []);
+//       setPermissions(permissionsResponse.data || []);
 //     } catch (error) {
-//       console.error("Error loading users:", error);
+//       console.error("Error loading data:", error);
 //     } finally {
 //       setLoading(false);
 //     }
@@ -56,7 +58,7 @@
 //   const handleRefresh = async () => {
 //     setIsRefreshing(true);
 //     try {
-//       await loadUsers();
+//       await loadInitialData();
 //     } finally {
 //       setTimeout(() => setIsRefreshing(false), 1000);
 //     }
@@ -71,7 +73,8 @@
 //         (user) =>
 //           user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //           user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//           user.email.toLowerCase().includes(searchTerm.toLowerCase())
+//           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           user.username.toLowerCase().includes(searchTerm.toLowerCase())
 //       );
 //     }
 
@@ -83,35 +86,9 @@
 //     setFilteredUsers(filtered);
 //   };
 
-//   const handleCreateUser = () => {
-//     setSelectedUser(null);
-//     setShowUserForm(true);
-//   };
-
-//   const handleEditUser = (user) => {
-//     setSelectedUser(user);
-//     setShowUserForm(true);
-//   };
-
-//   const handleDeleteUser = async (user) => {
-//     if (
-//       window.confirm(
-//         `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-//       )
-//     ) {
-//       try {
-//         await userService.deleteUser(user.userId, user.userType);
-//         loadUsers();
-//       } catch (error) {
-//         console.error("Error deleting user:", error);
-//         alert("Failed to delete user");
-//       }
-//     }
-//   };
-
 //   const handleAssignPermissions = (user) => {
 //     setSelectedUser(user);
-//     setShowPermissionModal(true);
+//     setShowUserPermissionModal(true);
 //   };
 
 //   const getUserTypeColor = (userType) => {
@@ -131,6 +108,7 @@
 //       total: users.length,
 //       internal: internalUsers,
 //       company: companyUsers,
+//       totalPermissions: permissions.length,
 //     };
 //   };
 
@@ -143,11 +121,11 @@
 //         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 //           <div className="space-y-2">
 //             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-//               <Users className="w-8 h-8 text-blue-600" />
-//               User Management
+//               <Shield className="w-8 h-8 text-purple-600" />
+//               Permission Management
 //             </h1>
 //             <p className="text-gray-600 text-base">
-//               Manage users, roles, and permissions
+//               Manage user permissions and access control
 //             </p>
 //           </div>
 //           <div className="flex items-center gap-4">
@@ -164,24 +142,17 @@
 //               />
 //             </button>
 //             <button
-//               onClick={() => setShowPasswordReset(true)}
-//               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+//               onClick={() => setShowPermissionValues(true)}
+//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
 //             >
-//               <Key className="w-4 h-4 mr-2" />
-//               Password Reset
-//             </button>
-//             <button
-//               onClick={handleCreateUser}
-//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-//             >
-//               <Plus className="w-5 h-5 mr-2" />
-//               Add User
+//               <Eye className="w-5 h-5 mr-2" />
+//               See Permission Values
 //             </button>
 //           </div>
 //         </div>
 
 //         {/* Stats Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 //           <div className="bg-white rounded-lg border border-gray-200 p-6">
 //             <div className="flex items-center gap-4">
 //               <div className="p-3 bg-blue-100 rounded-lg">
@@ -227,6 +198,53 @@
 //               </div>
 //             </div>
 //           </div>
+//           <div className="bg-white rounded-lg border border-gray-200 p-6">
+//             <div className="flex items-center gap-4">
+//               <div className="p-3 bg-orange-100 rounded-lg">
+//                 <Settings className="w-6 h-6 text-orange-600" />
+//               </div>
+//               <div>
+//                 <p className="text-sm font-medium text-gray-600 uppercase">
+//                   Total Permissions
+//                 </p>
+//                 <p className="text-2xl font-semibold text-gray-900">
+//                   {stats.totalPermissions}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Action Buttons */}
+//         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
+//           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+//             <button
+//               onClick={() => setShowPermissionValues(true)}
+//               className="flex-1 max-w-md inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+//             >
+//               <Eye className="w-6 h-6 mr-3" />
+//               <div className="text-left">
+//                 <div className="text-lg">See Permission Values</div>
+//                 <div className="text-sm opacity-90">
+//                   View all available permissions
+//                 </div>
+//               </div>
+//             </button>
+//             <button
+//               onClick={() => {
+//                 /* This will be handled by the user table below */
+//               }}
+//               className="flex-1 max-w-md inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+//             >
+//               <UserPlus className="w-6 h-6 mr-3" />
+//               <div className="text-left">
+//                 <div className="text-lg">Assign Permissions</div>
+//                 <div className="text-sm opacity-90">
+//                   Select users from the table below
+//                 </div>
+//               </div>
+//             </button>
+//           </div>
 //         </div>
 
 //         {/* Filters */}
@@ -240,7 +258,7 @@
 //                   placeholder="Search users..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
 //                 />
 //               </div>
 //               <div className="relative">
@@ -248,7 +266,7 @@
 //                 <select
 //                   value={filterType}
 //                   onChange={(e) => setFilterType(e.target.value)}
-//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
+//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white appearance-none"
 //                 >
 //                   <option value="all">All Users</option>
 //                   <option value="INTERNAL">Internal Users</option>
@@ -264,15 +282,18 @@
 //         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
 //           <div className="p-6 border-b border-gray-200">
 //             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-//               <UserCheck className="w-6 h-6 text-blue-600" />
-//               Users ({filteredUsers.length})
+//               <Users className="w-6 h-6 text-purple-600" />
+//               Users for Permission Assignment ({filteredUsers.length})
 //             </h3>
+//             <p className="text-gray-600 mt-1">
+//               Click "Assign Permission" to manage user permissions
+//             </p>
 //           </div>
 
 //           {loading ? (
 //             <div className="flex items-center justify-center py-16">
 //               <div className="text-center">
-//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
 //                 <p className="text-gray-600">Loading users...</p>
 //               </div>
 //             </div>
@@ -285,17 +306,8 @@
 //               <p className="text-gray-600 mb-6">
 //                 {searchTerm || filterType !== "all"
 //                   ? "No users match your current filters"
-//                   : "Get started by creating your first user"}
+//                   : "No users available for permission assignment"}
 //               </p>
-//               {!searchTerm && filterType === "all" && (
-//                 <button
-//                   onClick={handleCreateUser}
-//                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-//                 >
-//                   <Plus className="w-5 h-5 mr-2" />
-//                   Create First User
-//                 </button>
-//               )}
 //             </div>
 //           ) : (
 //             <div className="overflow-x-auto">
@@ -314,7 +326,7 @@
 //                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Role
 //                     </th>
-//                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Actions
 //                     </th>
 //                   </tr>
@@ -329,7 +341,7 @@
 //                       >
 //                         <td className="px-6 py-4 whitespace-nowrap">
 //                           <div className="flex items-center gap-3">
-//                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+//                             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
 //                               <span className="text-white font-semibold text-sm">
 //                                 {user.firstName.charAt(0)}
 //                                 {user.lastName.charAt(0)}
@@ -340,7 +352,7 @@
 //                                 {user.firstName} {user.lastName}
 //                               </div>
 //                               <div className="text-sm text-gray-500">
-//                                 ID: {user.userId}
+//                                 @{user.username}
 //                               </div>
 //                             </div>
 //                           </div>
@@ -368,30 +380,14 @@
 //                             {user.roleName || "No Role"}
 //                           </span>
 //                         </td>
-//                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                           <div className="flex items-center justify-end gap-2">
-//                             <button
-//                               onClick={() => handleEditUser(user)}
-//                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-//                               title="Edit User"
-//                             >
-//                               <Edit className="w-4 h-4" />
-//                             </button>
-//                             <button
-//                               onClick={() => handleAssignPermissions(user)}
-//                               className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-//                               title="Assign Permissions"
-//                             >
-//                               <Shield className="w-4 h-4" />
-//                             </button>
-//                             <button
-//                               onClick={() => handleDeleteUser(user)}
-//                               className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-//                               title="Delete User"
-//                             >
-//                               <Trash2 className="w-4 h-4" />
-//                             </button>
-//                           </div>
+//                         <td className="px-6 py-4 whitespace-nowrap text-center">
+//                           <button
+//                             onClick={() => handleAssignPermissions(user)}
+//                             className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+//                           >
+//                             <Shield className="w-4 h-4 mr-2" />
+//                             Assign Permission
+//                           </button>
 //                         </td>
 //                       </tr>
 //                     );
@@ -403,84 +399,79 @@
 //         </div>
 
 //         {/* Modals */}
-//         <UserForm
-//           isOpen={showUserForm}
-//           onClose={() => setShowUserForm(false)}
-//           user={selectedUser}
-//           onSuccess={() => {
-//             setShowUserForm(false);
-//             loadUsers();
-//           }}
+//         <PermissionValuesModal
+//           isOpen={showPermissionValues}
+//           onClose={() => setShowPermissionValues(false)}
+//           permissions={permissions}
 //         />
 
-//         <PermissionAssignment
-//           isOpen={showPermissionModal}
-//           onClose={() => setShowPermissionModal(false)}
+//         <UserPermissionAssignmentModal
+//           isOpen={showUserPermissionModal}
+//           onClose={() => setShowUserPermissionModal(false)}
 //           user={selectedUser}
 //           onSuccess={() => {
-//             setShowPermissionModal(false);
-//             loadUsers();
+//             setShowUserPermissionModal(false);
+//             // Optionally refresh data
 //           }}
-//         />
-
-//         <PasswordResetForm
-//           isOpen={showPasswordReset}
-//           onClose={() => setShowPasswordReset(false)}
 //         />
 //       </div>
 //     </div>
 //   );
 // };
 
-// export default UserManagement;
+// export default PermissionManagement;
 
 // "use client";
 
 // import { useState, useEffect } from "react";
 // import {
+//   Shield,
 //   Users,
-//   Plus,
+//   Eye,
 //   Search,
 //   Filter,
-//   Edit,
-//   Trash2,
-//   Shield,
 //   ChevronDown,
 //   RefreshCw,
-//   UserCheck,
 //   Building,
 //   Mail,
+//   Settings,
 // } from "lucide-react";
+// import { permissionService } from "../services/permissionService";
 // import { userService } from "../services/userService";
-// import UserForm from "../components/UserManagement/UserForm";
-// import PermissionAssignment from "../components/UserManagement/PermissionAssignment";
+// import PermissionValuesModal from "../components/PermissionManagement/PermissionValuesModal";
+// import UserPermissionAssignmentModal from "../components/PermissionManagement/UserPermissionAssignmentModal";
 
-// const UserManagement = () => {
+// const PermissionManagement = () => {
 //   const [users, setUsers] = useState([]);
 //   const [filteredUsers, setFilteredUsers] = useState([]);
+//   const [permissions, setPermissions] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [filterType, setFilterType] = useState("all");
-//   const [showUserForm, setShowUserForm] = useState(false);
-//   const [showPermissionModal, setShowPermissionModal] = useState(false);
+//   const [showPermissionValues, setShowPermissionValues] = useState(false);
+//   const [showUserPermissionModal, setShowUserPermissionModal] = useState(false);
 //   const [selectedUser, setSelectedUser] = useState(null);
 //   const [isRefreshing, setIsRefreshing] = useState(false);
 
 //   useEffect(() => {
-//     loadUsers();
+//     loadInitialData();
 //   }, []);
 
 //   useEffect(() => {
 //     filterUsers();
 //   }, [users, searchTerm, filterType]);
 
-//   const loadUsers = async () => {
+//   const loadInitialData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await userService.getAllUsers();
-//       setUsers(response.data || []);
+//       const [usersResponse, permissionsResponse] = await Promise.all([
+//         userService.getAllUsers(),
+//         permissionService.getAllPermissions(),
+//       ]);
+//       setUsers(usersResponse.data || []);
+//       setPermissions(permissionsResponse.data || []);
 //     } catch (error) {
-//       console.error("Error loading users:", error);
+//       console.error("Error loading data:", error);
 //     } finally {
 //       setLoading(false);
 //     }
@@ -489,7 +480,7 @@
 //   const handleRefresh = async () => {
 //     setIsRefreshing(true);
 //     try {
-//       await loadUsers();
+//       await loadInitialData();
 //     } finally {
 //       setTimeout(() => setIsRefreshing(false), 1000);
 //     }
@@ -504,7 +495,8 @@
 //         (user) =>
 //           user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //           user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//           user.email.toLowerCase().includes(searchTerm.toLowerCase())
+//           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           user.username.toLowerCase().includes(searchTerm.toLowerCase())
 //       );
 //     }
 
@@ -516,35 +508,9 @@
 //     setFilteredUsers(filtered);
 //   };
 
-//   const handleCreateUser = () => {
-//     setSelectedUser(null);
-//     setShowUserForm(true);
-//   };
-
-//   const handleEditUser = (user) => {
-//     setSelectedUser(user);
-//     setShowUserForm(true);
-//   };
-
-//   const handleDeleteUser = async (user) => {
-//     if (
-//       window.confirm(
-//         `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-//       )
-//     ) {
-//       try {
-//         await userService.deleteUser(user.userId, user.userType);
-//         loadUsers();
-//       } catch (error) {
-//         console.error("Error deleting user:", error);
-//         alert("Failed to delete user");
-//       }
-//     }
-//   };
-
 //   const handleAssignPermissions = (user) => {
 //     setSelectedUser(user);
-//     setShowPermissionModal(true);
+//     setShowUserPermissionModal(true);
 //   };
 
 //   const getUserTypeColor = (userType) => {
@@ -564,6 +530,7 @@
 //       total: users.length,
 //       internal: internalUsers,
 //       company: companyUsers,
+//       totalPermissions: permissions.length,
 //     };
 //   };
 
@@ -576,11 +543,11 @@
 //         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 //           <div className="space-y-2">
 //             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-//               <Users className="w-8 h-8 text-blue-600" />
-//               User Management
+//               <Shield className="w-8 h-8 text-purple-600" />
+//               Permission Management
 //             </h1>
 //             <p className="text-gray-600 text-base">
-//               Manage users, roles, and permissions
+//               Manage user permissions and access control
 //             </p>
 //           </div>
 //           <div className="flex items-center gap-4">
@@ -597,17 +564,17 @@
 //               />
 //             </button>
 //             <button
-//               onClick={handleCreateUser}
-//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+//               onClick={() => setShowPermissionValues(true)}
+//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
 //             >
-//               <Plus className="w-5 h-5 mr-2" />
-//               Add User
+//               <Eye className="w-5 h-5 mr-2" />
+//               See Permission Values
 //             </button>
 //           </div>
 //         </div>
 
 //         {/* Stats Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 //           <div className="bg-white rounded-lg border border-gray-200 p-6">
 //             <div className="flex items-center gap-4">
 //               <div className="p-3 bg-blue-100 rounded-lg">
@@ -653,6 +620,21 @@
 //               </div>
 //             </div>
 //           </div>
+//           <div className="bg-white rounded-lg border border-gray-200 p-6">
+//             <div className="flex items-center gap-4">
+//               <div className="p-3 bg-orange-100 rounded-lg">
+//                 <Settings className="w-6 h-6 text-orange-600" />
+//               </div>
+//               <div>
+//                 <p className="text-sm font-medium text-gray-600 uppercase">
+//                   Total Permissions
+//                 </p>
+//                 <p className="text-2xl font-semibold text-gray-900">
+//                   {stats.totalPermissions}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
 //         </div>
 
 //         {/* Filters */}
@@ -666,7 +648,7 @@
 //                   placeholder="Search users..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
 //                 />
 //               </div>
 //               <div className="relative">
@@ -674,7 +656,7 @@
 //                 <select
 //                   value={filterType}
 //                   onChange={(e) => setFilterType(e.target.value)}
-//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
+//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white appearance-none"
 //                 >
 //                   <option value="all">All Users</option>
 //                   <option value="INTERNAL">Internal Users</option>
@@ -690,14 +672,18 @@
 //         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
 //           <div className="p-6 border-b border-gray-200">
 //             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-//               <UserCheck className="w-6 h-6 text-blue-600" />
-//               Users ({filteredUsers.length})
+//               <Users className="w-6 h-6 text-purple-600" />
+//               Users for Permission Assignment ({filteredUsers.length})
 //             </h3>
+//             <p className="text-gray-600 mt-1">
+//               Click "Assign Permission" to manage user permissions
+//             </p>
 //           </div>
+
 //           {loading ? (
 //             <div className="flex items-center justify-center py-16">
 //               <div className="text-center">
-//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
 //                 <p className="text-gray-600">Loading users...</p>
 //               </div>
 //             </div>
@@ -710,17 +696,8 @@
 //               <p className="text-gray-600 mb-6">
 //                 {searchTerm || filterType !== "all"
 //                   ? "No users match your current filters"
-//                   : "Get started by creating your first user"}
+//                   : "No users available for permission assignment"}
 //               </p>
-//               {!searchTerm && filterType === "all" && (
-//                 <button
-//                   onClick={handleCreateUser}
-//                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-//                 >
-//                   <Plus className="w-5 h-5 mr-2" />
-//                   Create First User
-//                 </button>
-//               )}
 //             </div>
 //           ) : (
 //             <div className="overflow-x-auto">
@@ -739,7 +716,7 @@
 //                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Role
 //                     </th>
-//                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Actions
 //                     </th>
 //                   </tr>
@@ -754,7 +731,7 @@
 //                       >
 //                         <td className="px-6 py-4 whitespace-nowrap">
 //                           <div className="flex items-center gap-3">
-//                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+//                             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
 //                               <span className="text-white font-semibold text-sm">
 //                                 {user.firstName.charAt(0)}
 //                                 {user.lastName.charAt(0)}
@@ -765,7 +742,7 @@
 //                                 {user.firstName} {user.lastName}
 //                               </div>
 //                               <div className="text-sm text-gray-500">
-//                                 ID: {user.userId}
+//                                 @{user.username}
 //                               </div>
 //                             </div>
 //                           </div>
@@ -793,30 +770,14 @@
 //                             {user.roleName || "No Role"}
 //                           </span>
 //                         </td>
-//                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                           <div className="flex items-center justify-end gap-2">
-//                             <button
-//                               onClick={() => handleEditUser(user)}
-//                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-//                               title="Edit User"
-//                             >
-//                               <Edit className="w-4 h-4" />
-//                             </button>
-//                             <button
-//                               onClick={() => handleAssignPermissions(user)}
-//                               className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-//                               title="Assign Permissions"
-//                             >
-//                               <Shield className="w-4 h-4" />
-//                             </button>
-//                             <button
-//                               onClick={() => handleDeleteUser(user)}
-//                               className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-//                               title="Delete User"
-//                             >
-//                               <Trash2 className="w-4 h-4" />
-//                             </button>
-//                           </div>
+//                         <td className="px-6 py-4 whitespace-nowrap text-center">
+//                           <button
+//                             onClick={() => handleAssignPermissions(user)}
+//                             className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+//                           >
+//                             <Shield className="w-4 h-4 mr-2" />
+//                             Assign Permission
+//                           </button>
 //                         </td>
 //                       </tr>
 //                     );
@@ -828,22 +789,19 @@
 //         </div>
 
 //         {/* Modals */}
-//         <UserForm
-//           isOpen={showUserForm}
-//           onClose={() => setShowUserForm(false)}
-//           user={selectedUser}
-//           onSuccess={() => {
-//             setShowUserForm(false);
-//             loadUsers();
-//           }}
+//         <PermissionValuesModal
+//           isOpen={showPermissionValues}
+//           onClose={() => setShowPermissionValues(false)}
+//           permissions={permissions}
 //         />
-//         <PermissionAssignment
-//           isOpen={showPermissionModal}
-//           onClose={() => setShowPermissionModal(false)}
+
+//         <UserPermissionAssignmentModal
+//           isOpen={showUserPermissionModal}
+//           onClose={() => setShowUserPermissionModal(false)}
 //           user={selectedUser}
 //           onSuccess={() => {
-//             setShowPermissionModal(false);
-//             loadUsers();
+//             setShowUserPermissionModal(false);
+//             // Optionally refresh data
 //           }}
 //         />
 //       </div>
@@ -851,51 +809,59 @@
 //   );
 // };
 
-// export default UserManagement;
+// export default PermissionManagement;
 
 // "use client";
+
 // import { useState, useEffect } from "react";
 // import {
+//   Shield,
 //   Users,
-//   Plus,
+//   Eye,
 //   Search,
 //   Filter,
-//   Edit,
-//   Trash2,
 //   ChevronDown,
 //   RefreshCw,
-//   UserCheck,
 //   Building,
 //   Mail,
+//   Settings,
 // } from "lucide-react";
+// import { permissionService } from "../services/permissionService";
 // import { userService } from "../services/userService";
-// import UserForm from "../components/UserManagement/UserForm";
+// import PermissionValuesModal from "../components/PermissionManagement/PermissionValuesModal";
+// import UserPermissionAssignmentModal from "../components/PermissionManagement/UserPermissionAssignmentModal";
 
-// const UserManagement = () => {
+// const PermissionManagement = () => {
 //   const [users, setUsers] = useState([]);
 //   const [filteredUsers, setFilteredUsers] = useState([]);
+//   const [permissions, setPermissions] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [filterType, setFilterType] = useState("all");
-//   const [showUserForm, setShowUserForm] = useState(false);
+//   const [showPermissionValues, setShowPermissionValues] = useState(false);
+//   const [showUserPermissionModal, setShowUserPermissionModal] = useState(false);
 //   const [selectedUser, setSelectedUser] = useState(null);
 //   const [isRefreshing, setIsRefreshing] = useState(false);
 
 //   useEffect(() => {
-//     loadUsers();
+//     loadInitialData();
 //   }, []);
 
 //   useEffect(() => {
 //     filterUsers();
 //   }, [users, searchTerm, filterType]);
 
-//   const loadUsers = async () => {
+//   const loadInitialData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await userService.getAllUsers();
-//       setUsers(response.data || []);
+//       const [usersResponse, permissionsResponse] = await Promise.all([
+//         userService.getAllUsers(),
+//         permissionService.getAllPermissions(),
+//       ]);
+//       setUsers(usersResponse.data || []);
+//       setPermissions(permissionsResponse.data || []);
 //     } catch (error) {
-//       console.error("Error loading users:", error);
+//       console.error("Error loading data:", error);
 //     } finally {
 //       setLoading(false);
 //     }
@@ -904,7 +870,7 @@
 //   const handleRefresh = async () => {
 //     setIsRefreshing(true);
 //     try {
-//       await loadUsers();
+//       await loadInitialData();
 //     } finally {
 //       setTimeout(() => setIsRefreshing(false), 1000);
 //     }
@@ -919,7 +885,8 @@
 //         (user) =>
 //           user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //           user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//           user.email.toLowerCase().includes(searchTerm.toLowerCase())
+//           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           user.username.toLowerCase().includes(searchTerm.toLowerCase())
 //       );
 //     }
 
@@ -931,30 +898,9 @@
 //     setFilteredUsers(filtered);
 //   };
 
-//   const handleCreateUser = () => {
-//     setSelectedUser(null);
-//     setShowUserForm(true);
-//   };
-
-//   const handleEditUser = (user) => {
+//   const handleAssignPermissions = (user) => {
 //     setSelectedUser(user);
-//     setShowUserForm(true);
-//   };
-
-//   const handleDeleteUser = async (user) => {
-//     if (
-//       window.confirm(
-//         `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-//       )
-//     ) {
-//       try {
-//         await userService.deleteUser(user.userId, user.userType);
-//         loadUsers();
-//       } catch (error) {
-//         console.error("Error deleting user:", error);
-//         alert("Failed to delete user");
-//       }
-//     }
+//     setShowUserPermissionModal(true);
 //   };
 
 //   const getUserTypeColor = (userType) => {
@@ -964,7 +910,7 @@
 //   };
 
 //   const getUserTypeIcon = (userType) => {
-//     return userType === "INTERNAL" ? Users : Building;
+//     return userType === "INTERNAL" ? Shield : Building;
 //   };
 
 //   const getStats = () => {
@@ -974,6 +920,7 @@
 //       total: users.length,
 //       internal: internalUsers,
 //       company: companyUsers,
+//       totalPermissions: permissions.length,
 //     };
 //   };
 
@@ -986,11 +933,11 @@
 //         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 //           <div className="space-y-2">
 //             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-//               <Users className="w-8 h-8 text-blue-600" />
-//               User Management
+//               <Shield className="w-8 h-8 text-purple-600" />
+//               Permission Management
 //             </h1>
 //             <p className="text-gray-600 text-base">
-//               Manage users and their information
+//               Manage user permissions and access control
 //             </p>
 //           </div>
 //           <div className="flex items-center gap-4">
@@ -1007,17 +954,17 @@
 //               />
 //             </button>
 //             <button
-//               onClick={handleCreateUser}
-//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+//               onClick={() => setShowPermissionValues(true)}
+//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
 //             >
-//               <Plus className="w-5 h-5 mr-2" />
-//               Add User
+//               <Eye className="w-5 h-5 mr-2" />
+//               See Permission Values
 //             </button>
 //           </div>
 //         </div>
 
 //         {/* Stats Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 //           <div className="bg-white rounded-lg border border-gray-200 p-6">
 //             <div className="flex items-center gap-4">
 //               <div className="p-3 bg-blue-100 rounded-lg">
@@ -1036,7 +983,7 @@
 //           <div className="bg-white rounded-lg border border-gray-200 p-6">
 //             <div className="flex items-center gap-4">
 //               <div className="p-3 bg-purple-100 rounded-lg">
-//                 <Users className="w-6 h-6 text-purple-600" />
+//                 <Shield className="w-6 h-6 text-purple-600" />
 //               </div>
 //               <div>
 //                 <p className="text-sm font-medium text-gray-600 uppercase">
@@ -1063,6 +1010,21 @@
 //               </div>
 //             </div>
 //           </div>
+//           <div className="bg-white rounded-lg border border-gray-200 p-6">
+//             <div className="flex items-center gap-4">
+//               <div className="p-3 bg-orange-100 rounded-lg">
+//                 <Settings className="w-6 h-6 text-orange-600" />
+//               </div>
+//               <div>
+//                 <p className="text-sm font-medium text-gray-600 uppercase">
+//                   Total Permissions
+//                 </p>
+//                 <p className="text-2xl font-semibold text-gray-900">
+//                   {stats.totalPermissions}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
 //         </div>
 
 //         {/* Filters */}
@@ -1076,7 +1038,7 @@
 //                   placeholder="Search users..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
 //                 />
 //               </div>
 //               <div className="relative">
@@ -1084,7 +1046,7 @@
 //                 <select
 //                   value={filterType}
 //                   onChange={(e) => setFilterType(e.target.value)}
-//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
+//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white appearance-none"
 //                 >
 //                   <option value="all">All Users</option>
 //                   <option value="INTERNAL">Internal Users</option>
@@ -1100,15 +1062,18 @@
 //         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
 //           <div className="p-6 border-b border-gray-200">
 //             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-//               <UserCheck className="w-6 h-6 text-blue-600" />
-//               Users ({filteredUsers.length})
+//               <Users className="w-6 h-6 text-purple-600" />
+//               Users for Permission Assignment ({filteredUsers.length})
 //             </h3>
+//             <p className="text-gray-600 mt-1">
+//               Click "Assign Permission" to manage user permissions
+//             </p>
 //           </div>
 
 //           {loading ? (
 //             <div className="flex items-center justify-center py-16">
 //               <div className="text-center">
-//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
 //                 <p className="text-gray-600">Loading users...</p>
 //               </div>
 //             </div>
@@ -1121,17 +1086,8 @@
 //               <p className="text-gray-600 mb-6">
 //                 {searchTerm || filterType !== "all"
 //                   ? "No users match your current filters"
-//                   : "Get started by creating your first user"}
+//                   : "No users available for permission assignment"}
 //               </p>
-//               {!searchTerm && filterType === "all" && (
-//                 <button
-//                   onClick={handleCreateUser}
-//                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-//                 >
-//                   <Plus className="w-5 h-5 mr-2" />
-//                   Create First User
-//                 </button>
-//               )}
 //             </div>
 //           ) : (
 //             <div className="overflow-x-auto">
@@ -1150,7 +1106,7 @@
 //                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Role
 //                     </th>
-//                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Actions
 //                     </th>
 //                   </tr>
@@ -1165,7 +1121,7 @@
 //                       >
 //                         <td className="px-6 py-4 whitespace-nowrap">
 //                           <div className="flex items-center gap-3">
-//                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+//                             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
 //                               <span className="text-white font-semibold text-sm">
 //                                 {user.firstName.charAt(0)}
 //                                 {user.lastName.charAt(0)}
@@ -1176,7 +1132,7 @@
 //                                 {user.firstName} {user.lastName}
 //                               </div>
 //                               <div className="text-sm text-gray-500">
-//                                 ID: {user.userId}
+//                                 @{user.username}
 //                               </div>
 //                             </div>
 //                           </div>
@@ -1204,23 +1160,14 @@
 //                             {user.roleName || "No Role"}
 //                           </span>
 //                         </td>
-//                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                           <div className="flex items-center justify-end gap-2">
-//                             <button
-//                               onClick={() => handleEditUser(user)}
-//                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-//                               title="Edit User"
-//                             >
-//                               <Edit className="w-4 h-4" />
-//                             </button>
-//                             <button
-//                               onClick={() => handleDeleteUser(user)}
-//                               className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-//                               title="Delete User"
-//                             >
-//                               <Trash2 className="w-4 h-4" />
-//                             </button>
-//                           </div>
+//                         <td className="px-6 py-4 whitespace-nowrap text-center">
+//                           <button
+//                             onClick={() => handleAssignPermissions(user)}
+//                             className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+//                           >
+//                             <Shield className="w-4 h-4 mr-2" />
+//                             Assign Permission
+//                           </button>
 //                         </td>
 //                       </tr>
 //                     );
@@ -1231,14 +1178,19 @@
 //           )}
 //         </div>
 
-//         {/* User Form Modal */}
-//         <UserForm
-//           isOpen={showUserForm}
-//           onClose={() => setShowUserForm(false)}
+//         {/* Modals */}
+//         <PermissionValuesModal
+//           isOpen={showPermissionValues}
+//           onClose={() => setShowPermissionValues(false)}
+//         />
+
+//         <UserPermissionAssignmentModal
+//           isOpen={showUserPermissionModal}
+//           onClose={() => setShowUserPermissionModal(false)}
 //           user={selectedUser}
 //           onSuccess={() => {
-//             setShowUserForm(false);
-//             loadUsers();
+//             setShowUserPermissionModal(false);
+//             // Optionally refresh data
 //           }}
 //         />
 //       </div>
@@ -1246,556 +1198,41 @@
 //   );
 // };
 
-// export default UserManagement;
-
-// "use client";
-// import { useState, useEffect } from "react";
-// import {
-//   Users,
-//   Plus,
-//   Search,
-//   Filter,
-//   Edit,
-//   Trash2,
-//   ChevronDown,
-//   RefreshCw,
-//   UserCheck,
-//   Building,
-//   Mail,
-//   ChevronLeft,
-//   ChevronRight,
-//   ChevronsLeft,
-//   ChevronsRight,
-// } from "lucide-react";
-// import { userService } from "../services/userService";
-// import UserForm from "../components/UserManagement/UserForm";
-
-// const UserManagement = () => {
-//   const [users, setUsers] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [userType, setUserType] = useState("INTERNAL"); // Default to INTERNAL, no "all" option
-//   const [showUserForm, setShowUserForm] = useState(false);
-//   const [selectedUser, setSelectedUser] = useState(null);
-//   const [isRefreshing, setIsRefreshing] = useState(false);
-
-//   // Pagination state
-//   const [currentPage, setCurrentPage] = useState(0);
-//   const [pageSize, setPageSize] = useState(10);
-//   const [totalElements, setTotalElements] = useState(0);
-//   const [totalPages, setTotalPages] = useState(0);
-
-//   // Page size options
-//   const pageSizeOptions = [5, 10, 20, 50, 100];
-
-//   useEffect(() => {
-//     loadUsers();
-//   }, [currentPage, pageSize, userType]);
-
-//   useEffect(() => {
-//     // Reset to first page when user type changes
-//     if (currentPage !== 0) {
-//       setCurrentPage(0);
-//     } else {
-//       loadUsers();
-//     }
-//   }, [userType]);
-
-//   const loadUsers = async () => {
-//     try {
-//       setLoading(true);
-//       const response = await userService.getUsersByType(
-//         userType,
-//         currentPage,
-//         pageSize
-//       );
-
-//       if (response.data) {
-//         setUsers(response.data.content || []);
-//         setTotalElements(response.data.totalElements || 0);
-//         setTotalPages(response.data.totalPages || 0);
-//       }
-//     } catch (error) {
-//       console.error("Error loading users:", error);
-//       setUsers([]);
-//       setTotalElements(0);
-//       setTotalPages(0);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleRefresh = async () => {
-//     setIsRefreshing(true);
-//     try {
-//       await loadUsers();
-//     } finally {
-//       setTimeout(() => setIsRefreshing(false), 1000);
-//     }
-//   };
-
-//   const handleCreateUser = () => {
-//     setSelectedUser(null);
-//     setShowUserForm(true);
-//   };
-
-//   const handleEditUser = (user) => {
-//     setSelectedUser(user);
-//     setShowUserForm(true);
-//   };
-
-//   const handleDeleteUser = async (user) => {
-//     if (
-//       window.confirm(
-//         `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-//       )
-//     ) {
-//       try {
-//         await userService.deleteUser(user.userId, user.userType);
-//         // If we're on the last page and it becomes empty, go to previous page
-//         if (users.length === 1 && currentPage > 0) {
-//           setCurrentPage(currentPage - 1);
-//         } else {
-//           loadUsers();
-//         }
-//       } catch (error) {
-//         console.error("Error deleting user:", error);
-//         alert("Failed to delete user");
-//       }
-//     }
-//   };
-
-//   const handleUserTypeChange = (newUserType) => {
-//     setUserType(newUserType);
-//     setCurrentPage(0);
-//   };
-
-//   const handlePageSizeChange = (newPageSize) => {
-//     setPageSize(Number.parseInt(newPageSize));
-//     setCurrentPage(0);
-//   };
-
-//   const handlePageChange = (newPage) => {
-//     setCurrentPage(newPage);
-//   };
-
-//   const getUserTypeColor = (userType) => {
-//     return userType === "INTERNAL"
-//       ? "bg-blue-100 text-blue-800 border-blue-200"
-//       : "bg-green-100 text-green-800 border-green-200";
-//   };
-
-//   const getUserTypeIcon = (userType) => {
-//     return userType === "INTERNAL" ? Users : Building;
-//   };
-
-//   // Filter users by search term (client-side filtering on current page)
-//   const filteredUsers = users.filter((user) => {
-//     if (!searchTerm) return true;
-//     const searchLower = searchTerm.toLowerCase();
-//     return (
-//       user.firstName.toLowerCase().includes(searchLower) ||
-//       user.lastName.toLowerCase().includes(searchLower) ||
-//       user.email.toLowerCase().includes(searchLower)
-//     );
-//   });
-
-//   // Update the PaginationControls component to always be visible
-//   const PaginationControls = () => {
-//     const startItem = totalElements > 0 ? currentPage * pageSize + 1 : 0;
-//     const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
-
-//     return (
-//       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 border-t border-gray-200 bg-gray-50">
-//         <div className="flex items-center gap-4">
-//           <div className="flex items-center gap-2">
-//             <span className="text-sm text-gray-700">Show:</span>
-//             <select
-//               value={pageSize}
-//               onChange={(e) => handlePageSizeChange(e.target.value)}
-//               className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-//             >
-//               {pageSizeOptions.map((size) => (
-//                 <option key={size} value={size}>
-//                   {size}
-//                 </option>
-//               ))}
-//             </select>
-//             <span className="text-sm text-gray-700">per page</span>
-//           </div>
-
-//           <div className="text-sm text-gray-700">
-//             {totalElements > 0 ? (
-//               <>
-//                 Showing {startItem} to {endItem} of {totalElements} results
-//               </>
-//             ) : (
-//               <>No results found</>
-//             )}
-//           </div>
-//         </div>
-
-//         {totalPages > 1 && (
-//           <div className="flex items-center gap-2">
-//             <button
-//               onClick={() => handlePageChange(0)}
-//               disabled={currentPage === 0}
-//               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//               title="First Page"
-//             >
-//               <ChevronsLeft className="w-4 h-4" />
-//             </button>
-
-//             <button
-//               onClick={() => handlePageChange(currentPage - 1)}
-//               disabled={currentPage === 0}
-//               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//               title="Previous Page"
-//             >
-//               <ChevronLeft className="w-4 h-4" />
-//             </button>
-
-//             <div className="flex items-center gap-1">
-//               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-//                 let pageNum;
-//                 if (totalPages <= 5) {
-//                   pageNum = i;
-//                 } else if (currentPage < 3) {
-//                   pageNum = i;
-//                 } else if (currentPage > totalPages - 4) {
-//                   pageNum = totalPages - 5 + i;
-//                 } else {
-//                   pageNum = currentPage - 2 + i;
-//                 }
-
-//                 return (
-//                   <button
-//                     key={pageNum}
-//                     onClick={() => handlePageChange(pageNum)}
-//                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-//                       currentPage === pageNum
-//                         ? "bg-blue-600 text-white shadow-sm"
-//                         : "border border-gray-300 hover:bg-gray-50 text-gray-700"
-//                     }`}
-//                   >
-//                     {pageNum + 1}
-//                   </button>
-//                 );
-//               })}
-//             </div>
-
-//             <button
-//               onClick={() => handlePageChange(currentPage + 1)}
-//               disabled={currentPage >= totalPages - 1}
-//               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//               title="Next Page"
-//             >
-//               <ChevronRight className="w-4 h-4" />
-//             </button>
-
-//             <button
-//               onClick={() => handlePageChange(totalPages - 1)}
-//               disabled={currentPage >= totalPages - 1}
-//               className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//               title="Last Page"
-//             >
-//               <ChevronsRight className="w-4 h-4" />
-//             </button>
-//           </div>
-//         )}
-
-//         {totalPages <= 1 && totalElements > 0 && (
-//           <div className="text-sm text-gray-500">
-//             All results shown on single page
-//           </div>
-//         )}
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-6">
-//       <div className="max-w-7xl mx-auto space-y-8">
-//         {/* Header */}
-//         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-//           <div className="space-y-2">
-//             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-//               <Users className="w-8 h-8 text-blue-600" />
-//               User Management
-//             </h1>
-//             <p className="text-gray-600 text-base">
-//               Manage users and their information
-//             </p>
-//           </div>
-//           <div className="flex items-center gap-4">
-//             <button
-//               onClick={handleRefresh}
-//               disabled={isRefreshing || loading}
-//               className="p-2 bg-white border border-gray-200 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50"
-//               title="Refresh Data"
-//             >
-//               <RefreshCw
-//                 className={`w-5 h-5 text-gray-600 ${
-//                   isRefreshing ? "animate-spin" : ""
-//                 }`}
-//               />
-//             </button>
-//             <button
-//               onClick={handleCreateUser}
-//               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-//             >
-//               <Plus className="w-5 h-5 mr-2" />
-//               Add User
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Stats Card */}
-//         <div className="bg-white rounded-lg border border-gray-200 p-6">
-//           <div className="flex items-center gap-4">
-//             <div className="p-3 bg-blue-100 rounded-lg">
-//               {userType === "INTERNAL" ? (
-//                 <Users className="w-6 h-6 text-blue-600" />
-//               ) : (
-//                 <Building className="w-6 h-6 text-green-600" />
-//               )}
-//             </div>
-//             <div>
-//               <p className="text-sm font-medium text-gray-600 uppercase">
-//                 {userType === "INTERNAL" ? "Internal Users" : "Company Users"}
-//               </p>
-//               <p className="text-2xl font-semibold text-gray-900">
-//                 {totalElements}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Filters */}
-//         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
-//           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-//             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-//               <div className="relative">
-//                 <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-//                 <select
-//                   value={userType}
-//                   onChange={(e) => handleUserTypeChange(e.target.value)}
-//                   className="w-52 pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
-//                 >
-//                   <option value="INTERNAL">Internal Users</option>
-//                   <option value="COMPANY">Company Users</option>
-//                 </select>
-//                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-//               </div>
-
-//               <div className="relative flex-1 max-w-md">
-//                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-//                 <input
-//                   type="text"
-//                   placeholder="Search users on current page..."
-//                   value={searchTerm}
-//                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-//                 />
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Users Table */}
-//         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
-//           <div className="p-6 border-b border-gray-200">
-//             <div className="flex items-center justify-between">
-//               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-//                 <UserCheck className="w-6 h-6 text-blue-600" />
-//                 {userType === "INTERNAL" ? "Internal" : "Company"} Users
-//               </h3>
-//               <div className="text-sm text-gray-500">
-//                 Page {currentPage + 1} of {totalPages || 1}
-//               </div>
-//             </div>
-//           </div>
-
-//           {loading ? (
-//             <div className="flex items-center justify-center py-16">
-//               <div className="text-center">
-//                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-//                 <p className="text-gray-600">Loading users...</p>
-//               </div>
-//             </div>
-//           ) : filteredUsers.length === 0 ? (
-//             <div className="text-center py-16">
-//               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-//               <h3 className="text-xl font-bold text-gray-900 mb-2">
-//                 {searchTerm ? "No Users Found" : "No Users Available"}
-//               </h3>
-//               <p className="text-gray-600 mb-6">
-//                 {searchTerm
-//                   ? "No users match your search criteria on this page"
-//                   : `No ${userType.toLowerCase()} users found`}
-//               </p>
-//               {!searchTerm && totalElements === 0 && (
-//                 <button
-//                   onClick={handleCreateUser}
-//                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-//                 >
-//                   <Plus className="w-5 h-5 mr-2" />
-//                   Create First User
-//                 </button>
-//               )}
-//             </div>
-//           ) : (
-//             <>
-//               <div className="overflow-x-auto">
-//                 <table className="w-full">
-//                   <thead className="bg-gray-50">
-//                     <tr>
-//                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                         User
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                         Type
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                         Email
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                         Role
-//                       </th>
-//                       <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                         Actions
-//                       </th>
-//                     </tr>
-//                   </thead>
-//                   <tbody className="bg-white divide-y divide-gray-200">
-//                     {filteredUsers.map((user) => {
-//                       const TypeIcon = getUserTypeIcon(user.userType);
-//                       return (
-//                         <tr
-//                           key={`${user.userType}-${user.userId}`}
-//                           className="hover:bg-gray-50 transition-colors"
-//                         >
-//                           <td className="px-6 py-4 whitespace-nowrap">
-//                             <div className="flex items-center gap-3">
-//                               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-//                                 <span className="text-white font-semibold text-sm">
-//                                   {user.firstName.charAt(0)}
-//                                   {user.lastName.charAt(0)}
-//                                 </span>
-//                               </div>
-//                               <div>
-//                                 <div className="text-sm font-medium text-gray-900">
-//                                   {user.firstName} {user.lastName}
-//                                 </div>
-//                                 <div className="text-sm text-gray-500">
-//                                   ID: {user.userId}
-//                                 </div>
-//                               </div>
-//                             </div>
-//                           </td>
-//                           <td className="px-6 py-4 whitespace-nowrap">
-//                             <span
-//                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getUserTypeColor(
-//                                 user.userType
-//                               )}`}
-//                             >
-//                               <TypeIcon className="w-3 h-3 mr-1" />
-//                               {user.userType}
-//                             </span>
-//                           </td>
-//                           <td className="px-6 py-4 whitespace-nowrap">
-//                             <div className="flex items-center gap-2">
-//                               <Mail className="w-4 h-4 text-gray-400" />
-//                               <span className="text-sm text-gray-900">
-//                                 {user.email}
-//                               </span>
-//                             </div>
-//                           </td>
-//                           <td className="px-6 py-4 whitespace-nowrap">
-//                             <span className="text-sm text-gray-900">
-//                               {user.roleName || "No Role"}
-//                             </span>
-//                           </td>
-//                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                             <div className="flex items-center justify-end gap-2">
-//                               <button
-//                                 onClick={() => handleEditUser(user)}
-//                                 className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-//                                 title="Edit User"
-//                               >
-//                                 <Edit className="w-4 h-4" />
-//                               </button>
-//                               <button
-//                                 onClick={() => handleDeleteUser(user)}
-//                                 className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-//                                 title="Delete User"
-//                               >
-//                                 <Trash2 className="w-4 h-4" />
-//                               </button>
-//                             </div>
-//                           </td>
-//                         </tr>
-//                       );
-//                     })}
-//                   </tbody>
-//                 </table>
-//               </div>
-
-//               {/* Always show pagination controls */}
-//               <PaginationControls />
-//             </>
-//           )}
-//         </div>
-
-//         {/* User Form Modal */}
-//         <UserForm
-//           isOpen={showUserForm}
-//           onClose={() => setShowUserForm(false)}
-//           user={selectedUser}
-//           onSuccess={() => {
-//             setShowUserForm(false);
-//             loadUsers();
-//           }}
-//         />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default UserManagement;
+// export default PermissionManagement;
 
 "use client";
 import { useState, useEffect } from "react";
 import {
+  Shield,
   Users,
-  Plus,
+  Eye,
   Search,
   Filter,
-  Edit,
-  Trash2,
   ChevronDown,
   RefreshCw,
-  UserCheck,
   Building,
   Mail,
+  Settings,
   ChevronLeft,
   ChevronRight,
-  Shield,
-  Settings,
   Home,
 } from "lucide-react";
+import { permissionService } from "../services/permissionService";
 import { userService } from "../services/userService";
 import { companyService } from "../services/companyService";
-import UserForm from "../components/UserManagement/UserForm";
+import PermissionValuesModal from "../components/PermissionManagement/PermissionValuesModal";
+import UserPermissionAssignmentModal from "../components/PermissionManagement/UserPermissionAssignmentModal";
 
-const UserManagement = () => {
+const PermissionManagement = () => {
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [selectedCompany, setSelectedCompany] = useState("");
-  const [showUserForm, setShowUserForm] = useState(false);
+  const [showPermissionValues, setShowPermissionValues] = useState(false);
+  const [showUserPermissionModal, setShowUserPermissionModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -1806,20 +1243,23 @@ const UserManagement = () => {
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    loadCompanies();
-    loadUsers();
+    loadInitialData();
   }, []);
 
   useEffect(() => {
     loadUsers();
   }, [roleFilter, selectedCompany, currentPage, pageSize]);
 
-  const loadCompanies = async () => {
+  const loadInitialData = async () => {
     try {
-      const response = await companyService.getAllCompanies();
-      setCompanies(response.data || []);
+      const [permissionsResponse, companiesResponse] = await Promise.all([
+        permissionService.getAllPermissions(),
+        companyService.getAllCompanies(),
+      ]);
+      setPermissions(permissionsResponse.data || []);
+      setCompanies(companiesResponse.data || []);
     } catch (error) {
-      console.error("Error loading companies:", error);
+      console.error("Error loading initial data:", error);
     }
   };
 
@@ -1919,30 +1359,9 @@ const UserManagement = () => {
     setCurrentPage(0);
   };
 
-  const handleCreateUser = () => {
-    setSelectedUser(null);
-    setShowUserForm(true);
-  };
-
-  const handleEditUser = (user) => {
+  const handleAssignPermissions = (user) => {
     setSelectedUser(user);
-    setShowUserForm(true);
-  };
-
-  const handleDeleteUser = async (user) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-      )
-    ) {
-      try {
-        await userService.deleteUser(user.userId, user.userType);
-        loadUsers();
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        alert("Failed to delete user");
-      }
-    }
+    setShowUserPermissionModal(true);
   };
 
   const getUserTypeColor = (userType) => {
@@ -1952,7 +1371,7 @@ const UserManagement = () => {
   };
 
   const getUserTypeIcon = (userType) => {
-    return userType === "INTERNAL" ? Users : Building;
+    return userType === "INTERNAL" ? Shield : Building;
   };
 
   const getRoleIcon = (roleName) => {
@@ -2000,6 +1419,15 @@ const UserManagement = () => {
     return roleNames[role] || role;
   };
 
+  const getStats = () => {
+    return {
+      totalUsers: totalElements,
+      totalPermissions: permissions.length,
+    };
+  };
+
+  const stats = getStats();
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -2007,11 +1435,11 @@ const UserManagement = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-600" />
-              User Management
+              <Shield className="w-8 h-8 text-purple-600" />
+              Permission Management
             </h1>
             <p className="text-gray-600 text-base">
-              Manage users with role-based filtering and pagination
+              Manage user permissions with role-based filtering
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -2028,28 +1456,45 @@ const UserManagement = () => {
               />
             </button>
             <button
-              onClick={handleCreateUser}
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+              onClick={() => setShowPermissionValues(true)}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Add User
+              <Eye className="w-5 h-5 mr-2" />
+              See Permission Values
             </button>
           </div>
         </div>
 
-        {/* Stats Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <UserCheck className="w-6 h-6 text-blue-600" />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 uppercase">
+                  {getRoleDisplayName(roleFilter)}
+                </p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalUsers.toLocaleString()}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600 uppercase">
-                {getRoleDisplayName(roleFilter)}
-              </p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {totalElements.toLocaleString()}
-              </p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Settings className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 uppercase">
+                  Total Permissions
+                </p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalPermissions}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -2068,7 +1513,7 @@ const UserManagement = () => {
                   <select
                     value={roleFilter}
                     onChange={(e) => handleRoleFilterChange(e.target.value)}
-                    className="w-full pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
+                    className="w-full pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white appearance-none"
                   >
                     <option value="all">All Users</option>
                     <option value="internal">Internal Users</option>
@@ -2083,7 +1528,7 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              {/* Company Filter - Only show for roles that require it */}
+              {/* Company Filter */}
               {requiresCompanySelection && (
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2094,7 +1539,7 @@ const UserManagement = () => {
                     <select
                       value={selectedCompany}
                       onChange={(e) => handleCompanyChange(e.target.value)}
-                      className="w-full pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
+                      className="w-full pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white appearance-none"
                     >
                       <option value="">Select a company</option>
                       {companies.map((company) => (
@@ -2119,7 +1564,7 @@ const UserManagement = () => {
                 <select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -2137,7 +1582,7 @@ const UserManagement = () => {
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
           </div>
@@ -2154,7 +1599,8 @@ const UserManagement = () => {
                 </h3>
                 <p className="text-yellow-700">
                   Please select a company to view{" "}
-                  {getRoleDisplayName(roleFilter).toLowerCase()}.
+                  {getRoleDisplayName(roleFilter).toLowerCase()} for permission
+                  assignment.
                 </p>
               </div>
             </div>
@@ -2165,10 +1611,15 @@ const UserManagement = () => {
         <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <UserCheck className="w-6 h-6 text-blue-600" />
-                {getRoleDisplayName(roleFilter)} ({filteredUsers.length})
-              </h3>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Users className="w-6 h-6 text-purple-600" />
+                  Users for Permission Assignment ({filteredUsers.length})
+                </h3>
+                <p className="text-gray-600 mt-1">
+                  Click "Assign Permission" to manage user permissions
+                </p>
+              </div>
               {totalElements > 0 && (
                 <p className="text-sm text-gray-500">
                   Showing {currentPage * pageSize + 1} to{" "}
@@ -2182,7 +1633,7 @@ const UserManagement = () => {
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading users...</p>
               </div>
             </div>
@@ -2197,7 +1648,9 @@ const UserManagement = () => {
                   ? "Please select a company to view users"
                   : searchTerm
                   ? "No users match your search criteria"
-                  : `No ${getRoleDisplayName(roleFilter).toLowerCase()} found`}
+                  : `No ${getRoleDisplayName(
+                      roleFilter
+                    ).toLowerCase()} available for permission assignment`}
               </p>
             </div>
           ) : (
@@ -2218,7 +1671,7 @@ const UserManagement = () => {
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Role
                       </th>
-                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -2234,7 +1687,7 @@ const UserManagement = () => {
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
                                 <span className="text-white font-semibold text-sm">
                                   {user.firstName.charAt(0)}
                                   {user.lastName.charAt(0)}
@@ -2276,23 +1729,14 @@ const UserManagement = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleEditUser(user)}
-                                className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                                title="Edit User"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteUser(user)}
-                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                                title="Delete User"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => handleAssignPermissions(user)}
+                              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+                            >
+                              <Shield className="w-4 h-4 mr-2" />
+                              Assign Permission
+                            </button>
                           </td>
                         </tr>
                       );
@@ -2338,7 +1782,7 @@ const UserManagement = () => {
                               onClick={() => handlePageChange(pageNum)}
                               className={`px-3 py-2 border rounded-lg text-sm ${
                                 currentPage === pageNum
-                                  ? "bg-blue-600 text-white border-blue-600"
+                                  ? "bg-purple-600 text-white border-purple-600"
                                   : "border-gray-300 hover:bg-gray-100"
                               }`}
                             >
@@ -2363,14 +1807,17 @@ const UserManagement = () => {
           )}
         </div>
 
-        {/* User Form Modal */}
-        <UserForm
-          isOpen={showUserForm}
-          onClose={() => setShowUserForm(false)}
+        {/* Modals */}
+        <PermissionValuesModal
+          isOpen={showPermissionValues}
+          onClose={() => setShowPermissionValues(false)}
+        />
+        <UserPermissionAssignmentModal
+          isOpen={showUserPermissionModal}
+          onClose={() => setShowUserPermissionModal(false)}
           user={selectedUser}
           onSuccess={() => {
-            setShowUserForm(false);
-            loadUsers();
+            setShowUserPermissionModal(false);
           }}
         />
       </div>
@@ -2378,4 +1825,4 @@ const UserManagement = () => {
   );
 };
 
-export default UserManagement;
+export default PermissionManagement;

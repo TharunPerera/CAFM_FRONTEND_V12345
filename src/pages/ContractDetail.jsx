@@ -1016,6 +1016,517 @@
 // };
 
 // export default ContractDetail;
+
+// import { useState, useEffect } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { contractService } from "../services/contractService";
+// import {
+//   ArrowLeftIcon,
+//   InformationCircleIcon,
+//   ChevronDownIcon,
+//   ChevronUpIcon,
+// } from "@heroicons/react/24/outline";
+
+// const ContractDetail = () => {
+//   const { contractId } = useParams();
+//   const navigate = useNavigate();
+//   const [contract, setContract] = useState(null);
+//   const [slaTypes, setSlaTypes] = useState([]);
+//   const [priorityLevels, setPriorityLevels] = useState({});
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [expandedScopes, setExpandedScopes] = useState({}); // Track expanded/collapsed scopes
+
+//   useEffect(() => {
+//     const fetchContract = async () => {
+//       try {
+//         setLoading(true);
+//         setError(null);
+
+//         const [contractRes, slaTypesRes] = await Promise.all([
+//           contractService.getContractById(contractId),
+//           contractService.getSlaTypes(),
+//         ]);
+
+//         console.log(
+//           "Raw Contract Response:",
+//           JSON.stringify(contractRes.data, null, 2)
+//         );
+
+//         const contractData = contractRes.data;
+//         const slaTypesData = Array.isArray(slaTypesRes.data)
+//           ? slaTypesRes.data
+//           : [];
+
+//         const priorityLevelsMap = {};
+//         await Promise.all(
+//           slaTypesData.map(async (slaType) => {
+//             try {
+//               const prioritiesRes = await contractService.getPriorityLevels(
+//                 slaType.slaTypeId.toString()
+//               );
+//               priorityLevelsMap[slaType.slaTypeId] = Array.isArray(
+//                 prioritiesRes.data
+//               )
+//                 ? prioritiesRes.data
+//                 : [];
+//             } catch (err) {
+//               priorityLevelsMap[slaType.slaTypeId] = [];
+//             }
+//           })
+//         );
+
+//         const enhancedContract = {
+//           ...contractData,
+//           slaRules: (contractData.slaRules || []).map((rule) => ({
+//             ...rule,
+//             slaTypeName:
+//               slaTypesData.find((sla) => sla.slaTypeId === rule.slaTypeId)
+//                 ?.slaTypeName || "N/A",
+//             priorityName:
+//               priorityLevelsMap[rule.slaTypeId]?.find(
+//                 (p) => p.priorityId === rule.priorityId
+//               )?.priorityName || "N/A",
+//           })),
+//         };
+
+//         console.log(
+//           "Enhanced Contract Data:",
+//           JSON.stringify(enhancedContract, null, 2)
+//         );
+//         console.log("SLA Rules Count:", enhancedContract.slaRules?.length || 0);
+//         console.log("SLA Rules Details:", enhancedContract.slaRules);
+//         console.log(
+//           "Service Scopes:",
+//           enhancedContract.services?.flatMap((service) =>
+//             service.subServices.flatMap((subService) =>
+//               subService.serviceScopes.map((scope) => ({
+//                 scopeId: scope.contractScopeId,
+//                 scopeName: scope.scopeName,
+//               }))
+//             )
+//           )
+//         );
+//         console.log("SLA Types:", slaTypesData);
+//         console.log("Priority Levels Map:", priorityLevelsMap);
+
+//         setContract(enhancedContract);
+//         setSlaTypes(slaTypesData);
+//         setPriorityLevels(priorityLevelsMap);
+//       } catch (err) {
+//         console.error("Error fetching contract:", err);
+//         setError("Failed to load contract details. Please try again.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchContract();
+//   }, [contractId]);
+
+//   // Toggle scope expansion
+//   const toggleScope = (scopeId) => {
+//     setExpandedScopes((prev) => ({
+//       ...prev,
+//       [scopeId]: !prev[scopeId],
+//     }));
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
+//       </div>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <div className="text-center p-6 bg-red-50 text-red-700 rounded-lg max-w-6xl mx-auto">
+//         {error}
+//       </div>
+//     );
+//   }
+
+//   if (!contract) {
+//     return (
+//       <div className="text-center p-6 bg-yellow-50 text-yellow-700 rounded-lg max-w-6xl mx-auto">
+//         Contract not found.
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+//       <div className="max-w-6xl mx-auto space-y-6">
+//         {/* Header */}
+//         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+//           <div className="flex items-center gap-4">
+//             <button
+//               onClick={() => navigate("/contracts/list")}
+//               className="flex items-center bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition"
+//               title="Return to contract list"
+//             >
+//               <ArrowLeftIcon className="h-5 w-5 mr-1" />
+//               Back
+//             </button>
+//             <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+//               {contract.contractName}
+//             </h2>
+//           </div>
+//           <button
+//             onClick={() => navigate("/contracts", { state: { contractId } })}
+//             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+//             title="Edit contract details"
+//           >
+//             Edit Contract
+//           </button>
+//         </div>
+
+//         {/* Contract Details */}
+//         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+//           <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+//             Contract Details
+//           </h3>
+//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+//             {[
+//               { label: "Contract ID", value: contract.contractId },
+//               {
+//                 label: "Company",
+//                 value: contract.companyName || "Unknown Company",
+//               },
+//               {
+//                 label: "Project Location",
+//                 value: contract.projectLocation || "N/A",
+//               },
+//               { label: "Project Type", value: contract.projectType },
+//               {
+//                 label: "Start Date",
+//                 value: contract.startDate
+//                   ? new Date(contract.startDate).toLocaleDateString()
+//                   : "N/A",
+//               },
+//               {
+//                 label: "End Date",
+//                 value: contract.endDate
+//                   ? new Date(contract.endDate).toLocaleDateString()
+//                   : "N/A",
+//               },
+//               { label: "Status", value: contract.status || "N/A" },
+//               {
+//                 label: "Created At",
+//                 value: contract.createdAt
+//                   ? new Date(contract.createdAt).toLocaleString()
+//                   : "N/A",
+//               },
+//             ].map((item, index) => (
+//               <div key={index} className="text-sm">
+//                 <label className="block font-medium text-gray-600">
+//                   {item.label}
+//                 </label>
+//                 <p className="mt-1 text-gray-800">{item.value}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Services */}
+//         {contract.services && contract.services.length > 0 && (
+//           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+//             <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+//               Services
+//             </h3>
+//             <div className="space-y-4">
+//               {contract.services.map((service, serviceIndex) => (
+//                 <div
+//                   key={
+//                     service.contractServiceId ||
+//                     `service-${service.serviceId}-${serviceIndex}`
+//                   }
+//                   className="bg-indigo-50 p-4 rounded-lg"
+//                 >
+//                   <h4 className="text-base sm:text-lg font-semibold text-indigo-800 mb-2">
+//                     Service {serviceIndex + 1}: {service.serviceName || "N/A"}
+//                   </h4>
+//                   {service.subServices && service.subServices.length > 0 && (
+//                     <div className="ml-0 sm:ml-4 space-y-2">
+//                       <h5 className="text-sm sm:text-base font-medium text-gray-700">
+//                         Sub-Services
+//                       </h5>
+//                       {service.subServices.map(
+//                         (subService, subServiceIndex) => (
+//                           <div
+//                             key={
+//                               subService.contractSubServiceId ||
+//                               `subService-${subService.subServiceId}-${subServiceIndex}`
+//                             }
+//                             className="bg-gray-50 p-3 rounded-lg"
+//                           >
+//                             <h6 className="text-sm font-medium text-gray-700">
+//                               Sub-Service {subServiceIndex + 1}:{" "}
+//                               {subService.subServiceName || "N/A"}
+//                             </h6>
+//                             {subService.serviceScopes &&
+//                               subService.serviceScopes.length > 0 && (
+//                                 <div className="ml-0 sm:ml-4 mt-2">
+//                                   <h6 className="text-xs sm:text-sm font-medium text-gray-600">
+//                                     Scopes
+//                                   </h6>
+//                                   {subService.serviceScopes.map(
+//                                     (scope, scopeIndex) => (
+//                                       <div
+//                                         key={
+//                                           scope.contractScopeId ||
+//                                           `scope-${scopeIndex}`
+//                                         }
+//                                         className="text-xs sm:text-sm text-gray-600 mt-1"
+//                                       >
+//                                         <p>
+//                                           Scope {scopeIndex + 1}:{" "}
+//                                           {scope.scopeName || "N/A"}
+//                                         </p>
+//                                       </div>
+//                                     )
+//                                   )}
+//                                 </div>
+//                               )}
+//                           </div>
+//                         )
+//                       )}
+//                     </div>
+//                   )}
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Employee Timings */}
+//         {contract.employeeTimings && contract.employeeTimings.length > 0 && (
+//           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+//             <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+//               Employee Timings
+//             </h3>
+//             <div className="overflow-x-auto">
+//               <table className="min-w-full text-sm">
+//                 <thead>
+//                   <tr className="bg-gray-100 text-left text-xs sm:text-sm font-semibold text-gray-700">
+//                     <th className="p-3">Day</th>
+//                     <th className="p-3">Duty Start</th>
+//                     <th className="p-3">Duty End</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {contract.employeeTimings.map((timing, index) => (
+//                     <tr
+//                       key={index}
+//                       className="border-t hover:bg-gray-50 transition-colors"
+//                     >
+//                       <td className="p-3">{timing.dayOfWeek}</td>
+//                       <td className="p-3">{timing.dutyStartTime}</td>
+//                       <td className="p-3">{timing.dutyEndTime}</td>
+//                     </tr>
+//                   ))}
+//                 </tbody>
+//               </table>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* SLA Rules */}
+//         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+//           <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+//             SLA Rules
+//           </h3>
+//           {contract.slaRules && contract.slaRules.length > 0 ? (
+//             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+//               {contract.services.flatMap((service, serviceIndex) =>
+//                 service.subServices.flatMap((subService, subServiceIndex) =>
+//                   subService.serviceScopes.map((scope, scopeIndex) => {
+//                     const scopeRules = contract.slaRules.filter(
+//                       (rule) =>
+//                         rule.scopeId?.toString() ===
+//                         scope.contractScopeId?.toString()
+//                     );
+
+//                     console.log(
+//                       `Scope ID: ${scope.contractScopeId}, Scope Name: ${scope.scopeName}, Rules Found:`,
+//                       scopeRules,
+//                       `All SLA Rules:`,
+//                       contract.slaRules
+//                     );
+
+//                     return (
+//                       <div
+//                         key={`${serviceIndex}-${subServiceIndex}-${scopeIndex}`}
+//                         className="border border-gray-200 rounded-lg overflow-hidden"
+//                       >
+//                         <button
+//                           onClick={() => toggleScope(scope.contractScopeId)}
+//                           className="w-full bg-indigo-100 p-4 flex justify-between items-center hover:bg-indigo-200 transition"
+//                           title={`Toggle ${scope.scopeName} rules`}
+//                         >
+//                           <div className="flex items-center">
+//                             <span className="bg-indigo-200 p-2 rounded-lg mr-3 text-indigo-800">
+//                               🎯
+//                             </span>
+//                             <div className="text-left">
+//                               <h5 className="text-sm sm:text-base font-semibold text-indigo-800">
+//                                 {scope.scopeName || "Unnamed Scope"} (
+//                                 {scopeRules.length} rules)
+//                               </h5>
+//                               <p className="text-xs sm:text-sm text-indigo-600">
+//                                 Service: {service.serviceName || "Unknown"} →
+//                                 Sub-Service:{" "}
+//                                 {subService.subServiceName || "Unknown"}
+//                               </p>
+//                             </div>
+//                           </div>
+//                           {expandedScopes[scope.contractScopeId] ? (
+//                             <ChevronUpIcon className="h-5 w-5 text-indigo-600" />
+//                           ) : (
+//                             <ChevronDownIcon className="h-5 w-5 text-indigo-600" />
+//                           )}
+//                         </button>
+//                         {expandedScopes[scope.contractScopeId] && (
+//                           <div className="p-4 space-y-3 transition-all duration-300">
+//                             {scopeRules.length > 0 ? (
+//                               scopeRules.map((rule, ruleIndex) => (
+//                                 <div
+//                                   key={rule.ruleId || `slaRule-${ruleIndex}`}
+//                                   className="bg-gray-50 p-3 rounded-lg border-l-4 border-indigo-400 hover:bg-gray-100 transition-shadow"
+//                                 >
+//                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+//                                     <div title="SLA Type">
+//                                       <label className="block font-medium text-gray-600">
+//                                         SLA Type
+//                                       </label>
+//                                       <p className="mt-1 text-gray-800">
+//                                         {rule.slaTypeName}
+//                                       </p>
+//                                     </div>
+//                                     <div title="Priority Level">
+//                                       <label className="block font-medium text-gray-600">
+//                                         Priority
+//                                       </label>
+//                                       <p className="mt-1 text-gray-800">
+//                                         {rule.priorityName}
+//                                       </p>
+//                                     </div>
+//                                     <div title="Response Time in Hours">
+//                                       <label className="block font-medium text-gray-600">
+//                                         Response Time (Hours)
+//                                       </label>
+//                                       <p className="mt-1 text-gray-800">
+//                                         {rule.responseTimeHours || "N/A"}
+//                                       </p>
+//                                     </div>
+//                                     <div title="Resolution Time in Hours">
+//                                       <label className="block font-medium text-gray-600">
+//                                         Resolution Time (Hours)
+//                                       </label>
+//                                       <p className="mt-1 text-gray-800">
+//                                         {rule.resolutionTimeHours || "N/A"}
+//                                       </p>
+//                                     </div>
+//                                   </div>
+//                                 </div>
+//                               ))
+//                             ) : (
+//                               <div className="bg-yellow-50 p-3 rounded-lg flex items-center text-sm">
+//                                 <InformationCircleIcon className="h-5 w-5 text-yellow-600 mr-2" />
+//                                 <p className="text-yellow-700">
+//                                   No SLA rules found for this scope.
+//                                 </p>
+//                               </div>
+//                             )}
+//                           </div>
+//                         )}
+//                       </div>
+//                     );
+//                   })
+//                 )
+//               )}
+//               {contract.slaRules.some((rule) => !rule.scopeId) && (
+//                 <div className="border border-red-200 rounded-lg p-4 mt-4">
+//                   <div className="flex items-center mb-3">
+//                     <InformationCircleIcon className="h-5 w-5 text-red-600 mr-2" />
+//                     <h5 className="text-sm sm:text-base font-semibold text-red-800">
+//                       Unassociated SLA Rules
+//                     </h5>
+//                   </div>
+//                   <p className="text-red-700 text-sm mb-3">
+//                     These SLA rules are not linked to any service scope.
+//                   </p>
+//                   {contract.slaRules
+//                     .filter((rule) => !rule.scopeId)
+//                     .map((rule, ruleIndex) => (
+//                       <div
+//                         key={rule.ruleId || `unassociated-slaRule-${ruleIndex}`}
+//                         className="bg-gray-50 p-3 rounded-lg border-l-4 border-red-400 mb-2 text-sm"
+//                       >
+//                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+//                           <div>
+//                             <label className="block font-medium text-gray-600">
+//                               SLA Type
+//                             </label>
+//                             <p className="mt-1 text-gray-800">
+//                               {rule.slaTypeName}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <label className="block font-medium text-gray-600">
+//                               Priority
+//                             </label>
+//                             <p className="mt-1 text-gray-800">
+//                               {rule.priorityName}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <label className="block font-medium text-gray-600">
+//                               Response Time (Hours)
+//                             </label>
+//                             <p className="mt-1 text-gray-800">
+//                               {rule.responseTimeHours || "N/A"}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <label className="block font-medium text-gray-600">
+//                               Resolution Time (Hours)
+//                             </label>
+//                             <p className="mt-1 text-gray-800">
+//                               {rule.resolutionTimeHours || "N/A"}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     ))}
+//                 </div>
+//               )}
+//             </div>
+//           ) : (
+//             <div className="text-center py-8 bg-gray-50 rounded-lg">
+//               <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+//                 <InformationCircleIcon className="h-6 w-6 text-gray-400" />
+//               </div>
+//               <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-2">
+//                 No SLA Rules Available
+//               </h4>
+//               <p className="text-gray-500 text-sm">
+//                 No SLA rules have been defined for this contract.
+//               </p>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ContractDetail;
+
+"use client";
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { contractService } from "../services/contractService";
@@ -1034,7 +1545,7 @@ const ContractDetail = () => {
   const [priorityLevels, setPriorityLevels] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedScopes, setExpandedScopes] = useState({}); // Track expanded/collapsed scopes
+  const [expandedScopes, setExpandedScopes] = useState({});
 
   useEffect(() => {
     const fetchContract = async () => {
@@ -1173,13 +1684,6 @@ const ContractDetail = () => {
               {contract.contractName}
             </h2>
           </div>
-          <button
-            onClick={() => navigate("/contracts", { state: { contractId } })}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-            title="Edit contract details"
-          >
-            Edit Contract
-          </button>
         </div>
 
         {/* Contract Details */}
@@ -1387,6 +1891,7 @@ const ContractDetail = () => {
                             <ChevronDownIcon className="h-5 w-5 text-indigo-600" />
                           )}
                         </button>
+
                         {expandedScopes[scope.contractScopeId] && (
                           <div className="p-4 space-y-3 transition-all duration-300">
                             {scopeRules.length > 0 ? (
@@ -1446,6 +1951,7 @@ const ContractDetail = () => {
                   })
                 )
               )}
+
               {contract.slaRules.some((rule) => !rule.scopeId) && (
                 <div className="border border-red-200 rounded-lg p-4 mt-4">
                   <div className="flex items-center mb-3">
