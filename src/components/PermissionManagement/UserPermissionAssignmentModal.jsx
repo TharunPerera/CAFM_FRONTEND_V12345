@@ -961,13 +961,90 @@ const UserPermissionAssignmentModal = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // // Permission categories mapping
+  // const permissionCategories = {
+  //   user: {
+  //     name: "User Management",
+  //     icon: Users,
+  //     color: "blue",
+  //     keywords: ["user", "permission"],
+  //   },
+  //   company: {
+  //     name: "Company Management",
+  //     icon: Building,
+  //     color: "green",
+  //     keywords: ["company"],
+  //   },
+  //   contract: {
+  //     name: "Contract Management",
+  //     icon: FileText,
+  //     color: "purple",
+  //     keywords: ["contract"],
+  //   },
+  //   service: {
+  //     name: "Service Management",
+  //     icon: Settings,
+  //     color: "orange",
+  //     keywords: ["service", "sub_service", "service_scope"],
+  //   },
+  //   property: {
+  //     name: "Property Management",
+  //     icon: Building,
+  //     color: "indigo",
+  //     keywords: ["property_flow"],
+  //   },
+  //   asset: {
+  //     name: "Asset Management",
+  //     icon: Package,
+  //     color: "teal",
+  //     keywords: ["asset"],
+  //   },
+  //   work: {
+  //     name: "Work Management",
+  //     icon: Wrench,
+  //     color: "red",
+  //     keywords: ["work_request", "work_order"],
+  //   },
+  //   checklist: {
+  //     name: "Checklist Management",
+  //     icon: ClipboardList,
+  //     color: "pink",
+  //     keywords: ["checklist"],
+  //   },
+  //   inventory: {
+  //     name: "Inventory Management",
+  //     icon: Package,
+  //     color: "cyan",
+  //     keywords: ["inventory", "spare_parts"],
+  //   },
+  //   kpi: {
+  //     name: "KPI & Reports",
+  //     icon: BarChart3,
+  //     color: "yellow",
+  //     keywords: ["kpi", "technician_availability"],
+  //   },
+  //   system: {
+  //     name: "System Settings",
+  //     icon: Settings,
+  //     color: "gray",
+  //     keywords: ["password", "username", "generate"],
+  //   },
+  // };
+
   // Permission categories mapping
   const permissionCategories = {
     user: {
-      name: "User Management",
+      name: "User and Permissions Management",
       icon: Users,
       color: "blue",
-      keywords: ["user", "permission"],
+      keywords: [
+        "user",
+        "permission",
+        "assign_permission_to_user",
+        "remove_permission_from_user",
+        "password",
+        "username",
+      ],
     },
     company: {
       name: "Company Management",
@@ -997,13 +1074,18 @@ const UserPermissionAssignmentModal = ({
       name: "Asset Management",
       icon: Package,
       color: "teal",
-      keywords: ["asset"],
+      keywords: [
+        "asset",
+        "Asset_excel_Report",
+        "Generate_Asset_QR_code",
+        "asset_pdf",
+      ],
     },
     work: {
-      name: "Work Management",
+      name: "Work Request and Work Order Management",
       icon: Wrench,
       color: "red",
-      keywords: ["work_request", "work_order"],
+      keywords: ["work_request", "work_order", "pm_schedule"],
     },
     checklist: {
       name: "Checklist Management",
@@ -1015,19 +1097,19 @@ const UserPermissionAssignmentModal = ({
       name: "Inventory Management",
       icon: Package,
       color: "cyan",
-      keywords: ["inventory", "spare_parts"],
+      keywords: ["inventory", "spare_parts_request"],
     },
     kpi: {
       name: "KPI & Reports",
       icon: BarChart3,
       color: "yellow",
-      keywords: ["kpi", "technician_availability"],
+      keywords: ["kpi"],
     },
     system: {
       name: "System Settings",
       icon: Settings,
       color: "gray",
-      keywords: ["password", "username", "generate"],
+      keywords: [],
     },
   };
 

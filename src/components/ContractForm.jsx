@@ -2337,25 +2337,60 @@ const ContractForm = ({ onSubmit }) => {
   };
 
   // Add sub-service
+  // const addSubService = (serviceIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.services[serviceIndex].subServices.push({
+  //       subServiceId: "",
+  //       serviceScopes: [{ scopeId: "" }],
+  //     });
+  //     return newFormData;
+  //   });
+  // };
+
   const addSubService = (serviceIndex) => {
     setFormData((prev) => {
-      const newFormData = { ...prev };
-      newFormData.services[serviceIndex].subServices.push({
-        subServiceId: "",
-        serviceScopes: [{ scopeId: "" }],
-      });
-      return newFormData;
+      const newServices = [...prev.services];
+      newServices[serviceIndex] = {
+        ...newServices[serviceIndex],
+        subServices: [
+          ...newServices[serviceIndex].subServices,
+          { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
+        ],
+      };
+
+      return { ...prev, services: newServices };
     });
   };
-
   // Add service scope
+  // const addServiceScope = (serviceIndex, subServiceIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.services[serviceIndex].subServices[
+  //       subServiceIndex
+  //     ].serviceScopes.push({ scopeId: "" });
+  //     return newFormData;
+  //   });
+  // };
+
   const addServiceScope = (serviceIndex, subServiceIndex) => {
     setFormData((prev) => {
-      const newFormData = { ...prev };
-      newFormData.services[serviceIndex].subServices[
-        subServiceIndex
-      ].serviceScopes.push({ scopeId: "" });
-      return newFormData;
+      const newServices = [...prev.services];
+      newServices[serviceIndex] = {
+        ...newServices[serviceIndex],
+        subServices: [...newServices[serviceIndex].subServices],
+      };
+
+      newServices[serviceIndex].subServices[subServiceIndex] = {
+        ...newServices[serviceIndex].subServices[subServiceIndex],
+        serviceScopes: [
+          ...newServices[serviceIndex].subServices[subServiceIndex]
+            .serviceScopes,
+          { scopeId: "" },
+        ],
+      };
+
+      return { ...prev, services: newServices };
     });
   };
 
@@ -2420,7 +2455,27 @@ const ContractForm = ({ onSubmit }) => {
     });
   };
 
-  // Handle Day Off button click
+  // // Handle Day Off button click
+  // const handleDayOff = (timingIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.employeeTimings[timingIndex] = {
+  //       ...newFormData.employeeTimings[timingIndex],
+  //       dutyStartTime: "00:00",
+  //       dutyEndTime: "00:00",
+  //     };
+  //     return newFormData;
+  //   });
+
+  //   // Clear validation errors for the day
+  //   setValidationErrors((prev) => {
+  //     const newErrors = { ...prev };
+  //     delete newErrors[`dutyStartTime-${timingIndex}`];
+  //     delete newErrors[`dutyEndTime-${timingIndex}`];
+  //     return newErrors;
+  //   });
+  // };
+
   const handleDayOff = (timingIndex) => {
     setFormData((prev) => {
       const newFormData = { ...prev };
@@ -2440,7 +2495,6 @@ const ContractForm = ({ onSubmit }) => {
       return newErrors;
     });
   };
-
   // Validate entire form before submission
   const validateFormData = () => {
     const errors = {};
@@ -2920,7 +2974,6 @@ const ContractForm = ({ onSubmit }) => {
                   </div>
                 </div>
               )}
-
               {activeTab === "services" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -2938,354 +2991,460 @@ const ContractForm = ({ onSubmit }) => {
                     </button>
                   </div>
 
-                  {formData.services.map((service, serviceIndex) => (
-                    <div
-                      key={serviceIndex}
-                      className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-100 overflow-hidden"
-                    >
-                      <div
-                        className="flex items-center justify-between bg-gradient-to-r from-green-100 to-emerald-100 p-6 cursor-pointer hover:from-green-200 hover:to-emerald-200 transition-all duration-200"
-                        onClick={() => toggleCollapse("service", serviceIndex)}
-                      >
-                        <h4 className="text-lg font-semibold text-green-800 flex items-center">
-                          <CogIcon className="w-5 h-5 mr-3" />
-                          Service {serviceIndex + 1}
-                          {service.serviceId && (
-                            <span className="ml-3 text-sm bg-green-600 text-white px-3 py-1 rounded-full">
-                              {services.find(
-                                (s) =>
-                                  s.serviceId.toString() === service.serviceId
-                              )?.serviceName || "Selected"}
-                            </span>
-                          )}
-                        </h4>
-                        <div className="flex items-center space-x-4">
-                          <button
-                            type="button"
-                            className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeService(serviceIndex);
-                            }}
-                            disabled={formData.services.length === 1}
-                            title="Remove Service"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                          {collapsedSections[`service-${serviceIndex}`] ? (
-                            <ChevronUpIcon className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <ChevronDownIcon className="h-5 w-5 text-green-600" />
-                          )}
-                        </div>
-                      </div>
+                  {formData.services.map((service, serviceIndex) => {
+                    // Get all selected sub-service IDs across all services
+                    const allSelectedSubServiceIds = formData.services.flatMap(
+                      (s) =>
+                        s.subServices
+                          .map((ss) => ss.subServiceId)
+                          .filter((id) => id !== "")
+                    );
 
-                      {!collapsedSections[`service-${serviceIndex}`] && (
-                        <div className="p-6 space-y-6">
-                          <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                              Service *
-                              <InformationCircleIcon
-                                className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                title="Select the main service category"
-                              />
-                            </label>
-                            <select
-                              name="serviceId"
-                              value={service.serviceId}
-                              onChange={(e) => handleChange(e, serviceIndex)}
-                              className={`w-full p-4 border-2 rounded-xl transition-all duration-200 ${
-                                validationErrors[`service-${serviceIndex}`]
-                                  ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                  : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
-                              } focus:ring-4 focus:outline-none`}
+                    // Get selected sub-service IDs for this specific service
+                    const serviceSelectedSubServiceIds = service.subServices
+                      .map((ss) => ss.subServiceId)
+                      .filter((id) => id !== "");
+
+                    return (
+                      <div
+                        key={serviceIndex}
+                        className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-100 overflow-hidden"
+                      >
+                        <div
+                          className="flex items-center justify-between bg-gradient-to-r from-green-100 to-emerald-100 p-6 cursor-pointer hover:from-green-200 hover:to-emerald-200 transition-all duration-200"
+                          onClick={() =>
+                            toggleCollapse("service", serviceIndex)
+                          }
+                        >
+                          <h4 className="text-lg font-semibold text-green-800 flex items-center">
+                            <CogIcon className="w-5 h-5 mr-3" />
+                            Service {serviceIndex + 1}
+                            {service.serviceId && (
+                              <span className="ml-3 text-sm bg-green-600 text-white px-3 py-1 rounded-full">
+                                {services.find(
+                                  (s) =>
+                                    s.serviceId.toString() === service.serviceId
+                                )?.serviceName || "Selected"}
+                              </span>
+                            )}
+                          </h4>
+                          <div className="flex items-center space-x-4">
+                            <button
+                              type="button"
+                              className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeService(serviceIndex);
+                              }}
+                              disabled={formData.services.length === 1}
+                              title="Remove Service"
                             >
-                              <option value="">Select Service</option>
-                              {services.map((s) => (
-                                <option
-                                  key={s.serviceId}
-                                  value={s.serviceId.toString()}
-                                >
-                                  {s.serviceName}
-                                </option>
-                              ))}
-                            </select>
-                            {validationErrors[`service-${serviceIndex}`] && (
-                              <p className="text-red-500 text-sm mt-1 flex items-center">
-                                <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                {validationErrors[`service-${serviceIndex}`]}
-                              </p>
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                            {collapsedSections[`service-${serviceIndex}`] ? (
+                              <ChevronUpIcon className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5 text-green-600" />
                             )}
                           </div>
+                        </div>
 
-                          {/* Sub-services */}
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h5 className="text-md font-semibold text-gray-700">
-                                Sub-Services
-                              </h5>
-                              <button
-                                type="button"
-                                onClick={() => addSubService(serviceIndex)}
-                                className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+                        {!collapsedSections[`service-${serviceIndex}`] && (
+                          <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                Service *
+                                <InformationCircleIcon
+                                  className="ml-2 h-4 w-4 text-gray-400 cursor-help"
+                                  title="Select the main service category"
+                                />
+                              </label>
+                              <select
+                                name="serviceId"
+                                value={service.serviceId}
+                                onChange={(e) => handleChange(e, serviceIndex)}
+                                className={`w-full p-4 border-2 rounded-xl transition-all duration-200 ${
+                                  validationErrors[`service-${serviceIndex}`]
+                                    ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                    : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
+                                } focus:ring-4 focus:outline-none`}
                               >
-                                <PlusIcon className="h-4 w-4 mr-1" />
-                                Add Sub-Service
-                              </button>
+                                <option value="">Select Service</option>
+                                {services.map((s) => (
+                                  <option
+                                    key={s.serviceId}
+                                    value={s.serviceId.toString()}
+                                  >
+                                    {s.serviceName}
+                                  </option>
+                                ))}
+                              </select>
+                              {validationErrors[`service-${serviceIndex}`] && (
+                                <p className="text-red-500 text-sm mt-1 flex items-center">
+                                  <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                  {validationErrors[`service-${serviceIndex}`]}
+                                </p>
+                              )}
                             </div>
 
-                            {service.subServices.map(
-                              (subService, subServiceIndex) => (
-                                <div
-                                  key={subServiceIndex}
-                                  className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-                                >
-                                  <div
-                                    className="flex items-center justify-between bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                                    onClick={() =>
-                                      toggleCollapse(
-                                        "subService",
-                                        serviceIndex,
-                                        subServiceIndex
-                                      )
-                                    }
-                                  >
-                                    <h6 className="text-md font-medium text-gray-700 flex items-center">
-                                      <span className="bg-gray-200 p-1 rounded mr-2">
-                                        🔹
-                                      </span>
-                                      Sub-Service {subServiceIndex + 1}
-                                      {subService.subServiceId && (
-                                        <span className="ml-2 text-xs bg-gray-600 text-white px-2 py-1 rounded-full">
-                                          {subServices[service.serviceId]?.find(
-                                            (ss) =>
-                                              ss.subServiceId.toString() ===
-                                              subService.subServiceId
-                                          )?.subServiceName || "Selected"}
-                                        </span>
-                                      )}
-                                    </h6>
-                                    <div className="flex items-center space-x-2">
-                                      <button
-                                        type="button"
-                                        className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          removeSubService(
+                            {/* Sub-services */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h5 className="text-md font-semibold text-gray-700">
+                                  Sub-Services
+                                  {serviceSelectedSubServiceIds.length > 0 && (
+                                    <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                                      {serviceSelectedSubServiceIds.length}{" "}
+                                      selected
+                                    </span>
+                                  )}
+                                </h5>
+                              </div>
+
+                              {service.subServices.map(
+                                (subService, subServiceIndex) => {
+                                  // Get available sub-services (excluding those already selected in other services)
+                                  const availableSubServices = (
+                                    subServices[service.serviceId] || []
+                                  ).filter(
+                                    (ss) =>
+                                      !allSelectedSubServiceIds.includes(
+                                        ss.subServiceId.toString()
+                                      ) ||
+                                      ss.subServiceId.toString() ===
+                                        subService.subServiceId
+                                  );
+
+                                  // Get selected scope IDs for this sub-service
+                                  const selectedScopeIds =
+                                    subService.serviceScopes
+                                      .map((scope) => scope.scopeId)
+                                      .filter((id) => id !== "");
+
+                                  return (
+                                    <div
+                                      key={subServiceIndex}
+                                      className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+                                    >
+                                      <div
+                                        className="flex items-center justify-between bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+                                        onClick={() =>
+                                          toggleCollapse(
+                                            "subService",
                                             serviceIndex,
                                             subServiceIndex
-                                          );
-                                        }}
-                                        disabled={
-                                          service.subServices.length === 1
+                                          )
                                         }
-                                        title="Remove Sub-Service"
                                       >
-                                        <TrashIcon className="h-4 w-4" />
-                                      </button>
-                                      {collapsedSections[
-                                        `subService-${serviceIndex}-${subServiceIndex}`
-                                      ] ? (
-                                        <ChevronUpIcon className="h-4 w-4 text-gray-600" />
-                                      ) : (
-                                        <ChevronDownIcon className="h-4 w-4 text-gray-600" />
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {!collapsedSections[
-                                    `subService-${serviceIndex}-${subServiceIndex}`
-                                  ] && (
-                                    <div className="p-4 space-y-4">
-                                      <div className="space-y-2">
-                                        <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                                          Sub-Service *
-                                          <InformationCircleIcon
-                                            className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                            title="Select a sub-service"
-                                          />
-                                        </label>
-                                        <select
-                                          name="subServiceId"
-                                          value={subService.subServiceId}
-                                          onChange={(e) =>
-                                            handleChange(
-                                              e,
-                                              serviceIndex,
-                                              subServiceIndex
-                                            )
-                                          }
-                                          className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
-                                            validationErrors[
-                                              `subService-${serviceIndex}-${subServiceIndex}`
-                                            ]
-                                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                              : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
-                                          } focus:ring-4 focus:outline-none`}
-                                          disabled={
-                                            !service.serviceId ||
-                                            !subServices[service.serviceId]
-                                              ?.length
-                                          }
-                                        >
-                                          <option value="">
-                                            Select Sub-Service
-                                          </option>
-                                          {(
-                                            subServices[service.serviceId] || []
-                                          ).map((ss) => (
-                                            <option
-                                              key={ss.subServiceId}
-                                              value={ss.subServiceId.toString()}
-                                            >
-                                              {ss.subServiceName}
-                                            </option>
-                                          ))}
-                                        </select>
-                                        {validationErrors[
-                                          `subService-${serviceIndex}-${subServiceIndex}`
-                                        ] && (
-                                          <p className="text-red-500 text-sm mt-1 flex items-center">
-                                            <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                            {
-                                              validationErrors[
-                                                `subService-${serviceIndex}-${subServiceIndex}`
-                                              ]
-                                            }
-                                          </p>
-                                        )}
-                                      </div>
-
-                                      {/* Service Scopes */}
-                                      <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                          <h6 className="text-sm font-semibold text-gray-700">
-                                            Service Scopes
-                                          </h6>
+                                        <h6 className="text-md font-medium text-gray-700 flex items-center">
+                                          <span className="bg-gray-200 p-1 rounded mr-2">
+                                            🔹
+                                          </span>
+                                          Sub-Service {subServiceIndex + 1}
+                                          {subService.subServiceId && (
+                                            <span className="ml-2 text-xs bg-gray-600 text-white px-2 py-1 rounded-full">
+                                              {subServices[
+                                                service.serviceId
+                                              ]?.find(
+                                                (ss) =>
+                                                  ss.subServiceId.toString() ===
+                                                  subService.subServiceId
+                                              )?.subServiceName || "Selected"}
+                                            </span>
+                                          )}
+                                        </h6>
+                                        <div className="flex items-center space-x-2">
                                           <button
                                             type="button"
-                                            onClick={() =>
-                                              addServiceScope(
+                                            className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              removeSubService(
                                                 serviceIndex,
                                                 subServiceIndex
-                                              )
+                                              );
+                                            }}
+                                            disabled={
+                                              service.subServices.length === 1
                                             }
-                                            className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                                            title="Remove Sub-Service"
                                           >
-                                            <PlusIcon className="h-3 w-3 mr-1" />
-                                            Add Scope
+                                            <TrashIcon className="h-4 w-4" />
                                           </button>
+                                          {collapsedSections[
+                                            `subService-${serviceIndex}-${subServiceIndex}`
+                                          ] ? (
+                                            <ChevronUpIcon className="h-4 w-4 text-gray-600" />
+                                          ) : (
+                                            <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                                          )}
                                         </div>
+                                      </div>
 
-                                        {subService.serviceScopes.map(
-                                          (scope, scopeIndex) => (
-                                            <div
-                                              key={scopeIndex}
-                                              className="bg-blue-50 p-4 rounded-lg border border-blue-200"
+                                      {!collapsedSections[
+                                        `subService-${serviceIndex}-${subServiceIndex}`
+                                      ] && (
+                                        <div className="p-4 space-y-4">
+                                          <div className="space-y-2">
+                                            <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                              Sub-Service *
+                                              {subService.subServiceId && (
+                                                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                                  Selected
+                                                </span>
+                                              )}
+                                            </label>
+                                            <select
+                                              name="subServiceId"
+                                              value={subService.subServiceId}
+                                              onChange={(e) =>
+                                                handleChange(
+                                                  e,
+                                                  serviceIndex,
+                                                  subServiceIndex
+                                                )
+                                              }
+                                              className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                validationErrors[
+                                                  `subService-${serviceIndex}-${subServiceIndex}`
+                                                ]
+                                                  ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                  : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
+                                              } focus:ring-4 focus:outline-none`}
+                                              disabled={
+                                                !service.serviceId ||
+                                                !subServices[service.serviceId]
+                                                  ?.length
+                                              }
                                             >
-                                              <div className="flex items-center justify-between mb-3">
-                                                <h6 className="text-sm font-medium text-blue-800 flex items-center">
-                                                  <span className="bg-blue-200 p-1 rounded mr-2">
-                                                    🎯
-                                                  </span>
-                                                  Scope {scopeIndex + 1}
-                                                </h6>
-                                                <button
-                                                  type="button"
-                                                  className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
-                                                  onClick={() =>
-                                                    removeServiceScope(
-                                                      serviceIndex,
-                                                      subServiceIndex,
-                                                      scopeIndex
-                                                    )
-                                                  }
-                                                  disabled={
-                                                    subService.serviceScopes
-                                                      .length === 1
-                                                  }
-                                                  title="Remove Scope"
-                                                >
-                                                  <TrashIcon className="h-4 w-4" />
-                                                </button>
-                                              </div>
-                                              <div className="space-y-2">
-                                                <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                                                  Service Scope *
-                                                  <InformationCircleIcon
-                                                    className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                                    title="Define the specific scope of work"
-                                                  />
-                                                </label>
-                                                <select
-                                                  name="scopeId"
-                                                  value={scope.scopeId}
-                                                  onChange={(e) =>
-                                                    handleChange(
-                                                      e,
-                                                      serviceIndex,
-                                                      subServiceIndex,
-                                                      scopeIndex
-                                                    )
-                                                  }
-                                                  className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
-                                                    validationErrors[
-                                                      `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                    ]
-                                                      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                                      : "border-blue-300 bg-white focus:border-blue-500 focus:ring-blue-200"
-                                                  } focus:ring-4 focus:outline-none`}
-                                                  disabled={
-                                                    !subService.subServiceId ||
-                                                    !serviceScopes[
+                                              <option value="">
+                                                Select Sub-Service
+                                              </option>
+                                              {availableSubServices.map(
+                                                (ss) => (
+                                                  <option
+                                                    key={ss.subServiceId}
+                                                    value={ss.subServiceId.toString()}
+                                                    disabled={
+                                                      allSelectedSubServiceIds.includes(
+                                                        ss.subServiceId.toString()
+                                                      ) &&
+                                                      ss.subServiceId.toString() !==
+                                                        subService.subServiceId
+                                                    }
+                                                  >
+                                                    {ss.subServiceName}
+                                                    {allSelectedSubServiceIds.includes(
+                                                      ss.subServiceId.toString()
+                                                    ) &&
+                                                    ss.subServiceId.toString() !==
                                                       subService.subServiceId
-                                                    ]?.length
-                                                  }
-                                                >
-                                                  <option value="">
-                                                    Select Scope
+                                                      ? " (already selected in another service)"
+                                                      : ""}
                                                   </option>
-                                                  {(
+                                                )
+                                              )}
+                                            </select>
+                                            {validationErrors[
+                                              `subService-${serviceIndex}-${subServiceIndex}`
+                                            ] && (
+                                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                                <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                                {
+                                                  validationErrors[
+                                                    `subService-${serviceIndex}-${subServiceIndex}`
+                                                  ]
+                                                }
+                                              </p>
+                                            )}
+                                          </div>
+
+                                          {/* Service Scopes - only show if sub-service is selected */}
+                                          {subService.subServiceId && (
+                                            <div className="space-y-3">
+                                              <h6 className="text-sm font-semibold text-gray-700 flex items-center">
+                                                Service Scopes
+                                                {selectedScopeIds.length >
+                                                  0 && (
+                                                  <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                                                    {selectedScopeIds.length}{" "}
+                                                    selected
+                                                  </span>
+                                                )}
+                                              </h6>
+
+                                              {subService.serviceScopes.map(
+                                                (scope, scopeIndex) => {
+                                                  // Get available scopes (excluding those already selected in this sub-service)
+                                                  const availableScopes = (
                                                     serviceScopes[
                                                       subService.subServiceId
                                                     ] || []
-                                                  ).map((sc) => (
-                                                    <option
-                                                      key={sc.scopeId}
-                                                      value={sc.scopeId.toString()}
+                                                  ).filter(
+                                                    (sc) =>
+                                                      !selectedScopeIds.includes(
+                                                        sc.scopeId.toString()
+                                                      ) ||
+                                                      sc.scopeId.toString() ===
+                                                        scope.scopeId
+                                                  );
+
+                                                  return (
+                                                    <div
+                                                      key={scopeIndex}
+                                                      className="bg-blue-50 p-4 rounded-lg border border-blue-200"
                                                     >
-                                                      {sc.scopeName}
-                                                    </option>
-                                                  ))}
-                                                </select>
-                                                {validationErrors[
-                                                  `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                ] && (
-                                                  <p className="text-red-500 text-sm mt-1 flex items-center">
-                                                    <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                                    {
-                                                      validationErrors[
-                                                        `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                      ]
-                                                    }
-                                                  </p>
-                                                )}
-                                              </div>
+                                                      <div className="flex items-center justify-between mb-3">
+                                                        <h6 className="text-sm font-medium text-blue-800 flex items-center">
+                                                          <span className="bg-blue-200 p-1 rounded mr-2">
+                                                            🎯
+                                                          </span>
+                                                          Scope {scopeIndex + 1}
+                                                          {scope.scopeId && (
+                                                            <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                                              Selected
+                                                            </span>
+                                                          )}
+                                                        </h6>
+                                                        <button
+                                                          type="button"
+                                                          className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
+                                                          onClick={() =>
+                                                            removeServiceScope(
+                                                              serviceIndex,
+                                                              subServiceIndex,
+                                                              scopeIndex
+                                                            )
+                                                          }
+                                                          disabled={
+                                                            subService
+                                                              .serviceScopes
+                                                              .length === 1
+                                                          }
+                                                          title="Remove Scope"
+                                                        >
+                                                          <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                      </div>
+                                                      <div className="space-y-2">
+                                                        <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                                          Service Scope *
+                                                        </label>
+                                                        <select
+                                                          name="scopeId"
+                                                          value={scope.scopeId}
+                                                          onChange={(e) =>
+                                                            handleChange(
+                                                              e,
+                                                              serviceIndex,
+                                                              subServiceIndex,
+                                                              scopeIndex
+                                                            )
+                                                          }
+                                                          className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                            validationErrors[
+                                                              `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                            ]
+                                                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                              : "border-blue-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                          } focus:ring-4 focus:outline-none`}
+                                                          disabled={
+                                                            !subService.subServiceId ||
+                                                            !serviceScopes[
+                                                              subService
+                                                                .subServiceId
+                                                            ]?.length
+                                                          }
+                                                        >
+                                                          <option value="">
+                                                            Select Scope
+                                                          </option>
+                                                          {availableScopes.map(
+                                                            (sc) => (
+                                                              <option
+                                                                key={sc.scopeId}
+                                                                value={sc.scopeId.toString()}
+                                                                disabled={
+                                                                  selectedScopeIds.includes(
+                                                                    sc.scopeId.toString()
+                                                                  ) &&
+                                                                  sc.scopeId.toString() !==
+                                                                    scope.scopeId
+                                                                }
+                                                              >
+                                                                {sc.scopeName}
+                                                                {selectedScopeIds.includes(
+                                                                  sc.scopeId.toString()
+                                                                ) &&
+                                                                sc.scopeId.toString() !==
+                                                                  scope.scopeId
+                                                                  ? " (already selected)"
+                                                                  : ""}
+                                                              </option>
+                                                            )
+                                                          )}
+                                                        </select>
+                                                        {validationErrors[
+                                                          `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                        ] && (
+                                                          <p className="text-red-500 text-sm mt-1 flex items-center">
+                                                            <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                                            {
+                                                              validationErrors[
+                                                                `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                              ]
+                                                            }
+                                                          </p>
+                                                        )}
+                                                      </div>
+
+                                                      {/* Add Scope button at bottom of each scope */}
+                                                      <div className="pt-3">
+                                                        <button
+                                                          type="button"
+                                                          onClick={() =>
+                                                            addServiceScope(
+                                                              serviceIndex,
+                                                              subServiceIndex
+                                                            )
+                                                          }
+                                                          className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors text-xs w-full justify-center"
+                                                        >
+                                                          <PlusIcon className="h-3 w-3 mr-1" />
+                                                          Add Another Scope
+                                                        </button>
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                }
+                                              )}
                                             </div>
-                                          )
-                                        )}
-                                      </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            )}
+                                  );
+                                }
+                              )}
+
+                              {/* Add Sub-Service button at bottom of service */}
+                              <div className="pt-4">
+                                <button
+                                  type="button"
+                                  onClick={() => addSubService(serviceIndex)}
+                                  className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm w-full justify-center"
+                                >
+                                  <PlusIcon className="h-4 w-4 mr-1" />
+                                  Add Another Sub-Service
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -3389,7 +3548,7 @@ const ContractForm = ({ onSubmit }) => {
                             )}
                           </div>
 
-                          <div className="space-y-2">
+                          {/* <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700">
                               Day Off
                             </label>
@@ -3397,6 +3556,27 @@ const ContractForm = ({ onSubmit }) => {
                               type="button"
                               onClick={() => handleDayOff(timingIndex)}
                               className="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                            >
+                              Set Day Off
+                            </button>
+                          </div> */}
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Day Off
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => handleDayOff(timingIndex)}
+                              disabled={
+                                timing.dutyStartTime === "00:00" &&
+                                timing.dutyEndTime === "00:00"
+                              }
+                              className={`w-full p-3 rounded-lg font-medium ${
+                                timing.dutyStartTime === "00:00" &&
+                                timing.dutyEndTime === "00:00"
+                                  ? "bg-gray-400 text-white cursor-not-allowed"
+                                  : "bg-red-500 text-white hover:bg-red-600"
+                              } transition-colors`}
                             >
                               Set Day Off
                             </button>
@@ -3446,7 +3626,7 @@ const ContractForm = ({ onSubmit }) => {
                         </div>
 
                         {/* Group rules by scope */}
-                        {formData.services.map((service, serviceIndex) =>
+                        {/* {formData.services.map((service, serviceIndex) =>
                           service.subServices.map(
                             (subService, subServiceIndex) =>
                               subService.serviceScopes.map(
@@ -3631,8 +3811,252 @@ const ContractForm = ({ onSubmit }) => {
                                 }
                               )
                           )
-                        )}
+                        )} */}
+                        {/* Inside the SLA tab section, replace the scopeRules mapping with this: */}
 
+                        {/* Group rules by scope and sort by SLA type */}
+                        {formData.services.map((service, serviceIndex) =>
+                          service.subServices.map(
+                            (subService, subServiceIndex) =>
+                              subService.serviceScopes.map(
+                                (scope, scopeIndex) => {
+                                  const scopeRules = autoGeneratedRules.filter(
+                                    (rule) => rule.scopeId === scope.scopeId
+                                  );
+
+                                  if (!scopeRules.length) return null;
+
+                                  // Sort rules by RM → CM → PM
+                                  const sortedRules = [...scopeRules].sort(
+                                    (a, b) => {
+                                      // RM comes first (slaTypeId 3)
+                                      if (
+                                        a.slaTypeId === "3" &&
+                                        b.slaTypeId !== "3"
+                                      )
+                                        return -1;
+                                      if (
+                                        a.slaTypeId !== "3" &&
+                                        b.slaTypeId === "3"
+                                      )
+                                        return 1;
+                                      // Then CM (slaTypeId 1)
+                                      if (
+                                        a.slaTypeId === "1" &&
+                                        b.slaTypeId === "2"
+                                      )
+                                        return -1;
+                                      if (
+                                        a.slaTypeId === "2" &&
+                                        b.slaTypeId === "1"
+                                      )
+                                        return 1;
+                                      return 0;
+                                    }
+                                  );
+
+                                  return (
+                                    <div
+                                      key={`${serviceIndex}-${subServiceIndex}-${scopeIndex}`}
+                                      className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8"
+                                    >
+                                      <div className="bg-gradient-to-r from-indigo-100 to-purple-100 p-6 border-b border-gray-200">
+                                        <h5 className="text-lg font-semibold text-indigo-800 flex items-center">
+                                          <span className="bg-indigo-200 p-2 rounded-lg mr-3">
+                                            🎯
+                                          </span>
+                                          {scopeRules[0].scopeName}
+                                        </h5>
+                                        <p className="text-indigo-600 text-sm mt-2">
+                                          Service:{" "}
+                                          {services.find(
+                                            (s) =>
+                                              s.serviceId.toString() ===
+                                              service.serviceId
+                                          )?.serviceName || "Unknown"}{" "}
+                                          → Sub-Service:{" "}
+                                          {subServices[service.serviceId]?.find(
+                                            (ss) =>
+                                              ss.subServiceId.toString() ===
+                                              subService.subServiceId
+                                          )?.subServiceName || "Unknown"}
+                                        </p>
+                                      </div>
+
+                                      <div className="p-6">
+                                        <div className="grid gap-4">
+                                          {sortedRules.map(
+                                            (rule, ruleIndex) => {
+                                              const actualIndex =
+                                                formData.slaRules.findIndex(
+                                                  (r) => r === rule
+                                                );
+                                              const slaType = slaTypes.find(
+                                                (sla) =>
+                                                  sla.slaTypeId.toString() ===
+                                                  rule.slaTypeId
+                                              );
+                                              const priority = priorityLevels[
+                                                rule.slaTypeId
+                                              ]?.find(
+                                                (pl) =>
+                                                  pl.priorityId.toString() ===
+                                                  rule.priorityId
+                                              );
+
+                                              // Determine colors based on SLA type
+                                              let typeBgColor = "bg-blue-100";
+                                              let typeTextColor =
+                                                "text-blue-800";
+                                              let priorityBgColor =
+                                                "bg-purple-100";
+                                              let priorityTextColor =
+                                                "text-purple-800";
+                                              let cardBorderColor =
+                                                "border-blue-400";
+                                              let cardBgColor =
+                                                "from-gray-50 to-blue-50";
+
+                                              if (rule.slaTypeId === "3") {
+                                                // RM
+                                                typeBgColor = "bg-red-100";
+                                                typeTextColor = "text-red-800";
+                                                priorityBgColor =
+                                                  "bg-orange-100";
+                                                priorityTextColor =
+                                                  "text-orange-800";
+                                                cardBorderColor =
+                                                  "border-red-400";
+                                                cardBgColor =
+                                                  "from-gray-50 to-red-50";
+                                              } else if (
+                                                rule.slaTypeId === "2"
+                                              ) {
+                                                // PM
+                                                typeBgColor = "bg-green-100";
+                                                typeTextColor =
+                                                  "text-green-800";
+                                                priorityBgColor = "bg-teal-100";
+                                                priorityTextColor =
+                                                  "text-teal-800";
+                                                cardBorderColor =
+                                                  "border-green-400";
+                                                cardBgColor =
+                                                  "from-gray-50 to-green-50";
+                                              }
+
+                                              return (
+                                                <div
+                                                  key={actualIndex}
+                                                  className={`bg-gradient-to-r ${cardBgColor} p-6 rounded-xl border-l-4 ${cardBorderColor} shadow-sm hover:shadow-md transition-shadow`}
+                                                >
+                                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        SLA Type
+                                                      </label>
+                                                      <div
+                                                        className={`${typeBgColor} ${typeTextColor} px-4 py-3 rounded-lg font-medium text-center`}
+                                                      >
+                                                        {slaType?.slaTypeName ||
+                                                          "Unknown"}
+                                                      </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Priority Level
+                                                      </label>
+                                                      <div
+                                                        className={`${priorityBgColor} ${priorityTextColor} px-4 py-3 rounded-lg font-medium text-center`}
+                                                      >
+                                                        {priority?.priorityName ||
+                                                          "Unknown"}
+                                                      </div>
+                                                    </div>
+
+                                                    {/* Rest of the rule fields remain the same */}
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Response Time (Hours) *
+                                                      </label>
+                                                      <input
+                                                        type="number"
+                                                        name="responseTimeHours"
+                                                        value={
+                                                          rule.responseTimeHours
+                                                        }
+                                                        onChange={(e) =>
+                                                          handleChange(
+                                                            e,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            actualIndex
+                                                          )
+                                                        }
+                                                        className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                          validationErrors[
+                                                            `responseTimeHours-${actualIndex}`
+                                                          ]
+                                                            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                            : "border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                        } focus:ring-4 focus:outline-none`}
+                                                        step="0.1"
+                                                        min="0"
+                                                        placeholder="Enter hours"
+                                                      />
+                                                      {/* Error message remains the same */}
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Resolution Time (Hours)
+                                                        *
+                                                      </label>
+                                                      <input
+                                                        type="number"
+                                                        name="resolutionTimeHours"
+                                                        value={
+                                                          rule.resolutionTimeHours
+                                                        }
+                                                        onChange={(e) =>
+                                                          handleChange(
+                                                            e,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            actualIndex
+                                                          )
+                                                        }
+                                                        className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                          validationErrors[
+                                                            `resolutionTimeHours-${actualIndex}`
+                                                          ]
+                                                            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                            : "border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                        } focus:ring-4 focus:outline-none`}
+                                                        step="0.1"
+                                                        min="0"
+                                                        placeholder="Enter hours"
+                                                      />
+                                                      {/* Error message remains the same */}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )
+                          )
+                        )}
                         {/* Submit Button - Only in SLA Rules Tab */}
                         <div className="pt-6 border-t border-gray-200">
                           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6">

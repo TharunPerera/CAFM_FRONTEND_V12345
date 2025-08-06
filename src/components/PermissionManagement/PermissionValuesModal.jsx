@@ -454,10 +454,17 @@ const PermissionValuesModal = ({ isOpen, onClose }) => {
   // Permission categories mapping
   const permissionCategories = {
     user: {
-      name: "User Management",
+      name: "User and Permissions Management",
       icon: Users,
       color: "blue",
-      keywords: ["user", "permission"],
+      keywords: [
+        "user",
+        "permission",
+        "assign_permission_to_user",
+        "remove_permission_from_user",
+        "password",
+        "username",
+      ],
     },
     company: {
       name: "Company Management",
@@ -487,13 +494,18 @@ const PermissionValuesModal = ({ isOpen, onClose }) => {
       name: "Asset Management",
       icon: Package,
       color: "teal",
-      keywords: ["asset"],
+      keywords: [
+        "asset",
+        "Asset_excel_Report",
+        "Generate_Asset_QR_code",
+        "asset_pdf",
+      ],
     },
     work: {
-      name: "Work Management",
+      name: "Work Request and Work Order Management",
       icon: Wrench,
       color: "red",
-      keywords: ["work_request", "work_order"],
+      keywords: ["work_request", "work_order", "pm_schedule"],
     },
     checklist: {
       name: "Checklist Management",
@@ -505,19 +517,19 @@ const PermissionValuesModal = ({ isOpen, onClose }) => {
       name: "Inventory Management",
       icon: Package,
       color: "cyan",
-      keywords: ["inventory", "spare_parts"],
+      keywords: ["inventory", "spare_parts_request"],
     },
     kpi: {
       name: "KPI & Reports",
       icon: BarChart3,
       color: "yellow",
-      keywords: ["kpi", "technician_availability"],
+      keywords: ["kpi"],
     },
     system: {
       name: "System Settings",
       icon: Settings,
       color: "gray",
-      keywords: ["password", "username", "generate"],
+      keywords: [],
     },
   };
 
