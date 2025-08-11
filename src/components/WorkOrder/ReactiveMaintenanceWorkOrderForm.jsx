@@ -264,21 +264,195 @@
 
 // export default ReactiveMaintenanceWorkOrderForm;
 
+// "use client";
+
+// import { useState } from "react";
+// import { Save, Settings } from "lucide-react";
+// import { workOrderService } from "../../services/WorkOrderService";
+// import { toast } from "react-toastify";
+
+// const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
+//   const [formData, setFormData] = useState({
+//     workRequestId: "",
+//     technicianId: "",
+//     checklistId: "",
+//     workOrderType: "RM",
+//   });
+//   const [loading, setLoading] = useState(false);
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (
+//       !formData.workRequestId ||
+//       !formData.technicianId ||
+//       !formData.checklistId
+//     ) {
+//       toast.error("Please fill in all required fields");
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       await workOrderService.createWorkOrder(formData);
+//       toast.success("RM Work Order created successfully");
+
+//       // Reset form
+//       setFormData({
+//         workRequestId: "",
+//         technicianId: "",
+//         checklistId: "",
+//         workOrderType: "RM",
+//       });
+
+//       // Go back to main view
+//       onBack();
+//     } catch (error) {
+//       console.error("Error creating work order:", error);
+//       toast.error(
+//         error.response?.data?.message || "Failed to create work order"
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-2xl mx-auto">
+//       <div className="text-center mb-8">
+//         <div className="inline-flex p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-md mb-4">
+//           <Settings className="w-8 h-8 text-white" />
+//         </div>
+//         <h2 className="text-2xl font-bold text-gray-900 mb-2">
+//           Create RM Work Order
+//         </h2>
+//         <p className="text-gray-600">
+//           Create a work order for reactive maintenance
+//         </p>
+//       </div>
+
+//       <form onSubmit={handleSubmit} className="space-y-6">
+//         {/* Work Request ID */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Work Request ID <span className="text-red-500">*</span>
+//           </label>
+//           <input
+//             type="number"
+//             name="workRequestId"
+//             value={formData.workRequestId}
+//             onChange={handleInputChange}
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+//             placeholder="Enter Work Request ID"
+//             required
+//           />
+//         </div>
+
+//         {/* Technician ID */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Technician ID <span className="text-red-500">*</span>
+//           </label>
+//           <input
+//             type="number"
+//             name="technicianId"
+//             value={formData.technicianId}
+//             onChange={handleInputChange}
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+//             placeholder="Enter Technician ID"
+//             required
+//           />
+//         </div>
+
+//         {/* Checklist ID */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Checklist ID <span className="text-red-500">*</span>
+//           </label>
+//           <input
+//             type="number"
+//             name="checklistId"
+//             value={formData.checklistId}
+//             onChange={handleInputChange}
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+//             placeholder="Enter Checklist ID"
+//             required
+//           />
+//         </div>
+
+//         {/* Work Order Type (Read-only) */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Work Order Type
+//           </label>
+//           <input
+//             type="text"
+//             value="RM - Reactive Maintenance"
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+//             readOnly
+//           />
+//         </div>
+
+//         {/* Submit Button */}
+//         <div className="flex gap-4 pt-6">
+//           <button
+//             type="button"
+//             onClick={onBack}
+//             className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 disabled:opacity-50 transition-all shadow-lg hover:shadow-xl"
+//           >
+//             {loading ? (
+//               <>
+//                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+//                 Creating...
+//               </>
+//             ) : (
+//               <>
+//                 <Save className="w-5 h-5 mr-2" />
+//                 Create RM Work Order
+//               </>
+//             )}
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default ReactiveMaintenanceWorkOrderForm;
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Settings } from "lucide-react";
 import { workOrderService } from "../../services/WorkOrderService";
 import { toast } from "react-toastify";
 
-const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
+const ReactiveMaintenanceWorkOrderForm = ({ onBack, initialWorkRequestId }) => {
   const [formData, setFormData] = useState({
-    workRequestId: "",
+    workRequestId: initialWorkRequestId || "",
     technicianId: "",
     checklistId: "",
     workOrderType: "RM",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialWorkRequestId) {
+      setFormData((prev) => ({ ...prev, workRequestId: initialWorkRequestId }));
+    }
+  }, [initialWorkRequestId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -287,7 +461,6 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       !formData.workRequestId ||
       !formData.technicianId ||
@@ -296,21 +469,16 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
       toast.error("Please fill in all required fields");
       return;
     }
-
     setLoading(true);
     try {
       await workOrderService.createWorkOrder(formData);
       toast.success("RM Work Order created successfully");
-
-      // Reset form
       setFormData({
-        workRequestId: "",
+        workRequestId: initialWorkRequestId || "",
         technicianId: "",
         checklistId: "",
         workOrderType: "RM",
       });
-
-      // Go back to main view
       onBack();
     } catch (error) {
       console.error("Error creating work order:", error);
@@ -335,9 +503,7 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
           Create a work order for reactive maintenance
         </p>
       </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Work Request ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Work Request ID <span className="text-red-500">*</span>
@@ -350,10 +516,9 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Enter Work Request ID"
             required
+            disabled={!!initialWorkRequestId}
           />
         </div>
-
-        {/* Technician ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Technician ID <span className="text-red-500">*</span>
@@ -368,8 +533,6 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
             required
           />
         </div>
-
-        {/* Checklist ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Checklist ID <span className="text-red-500">*</span>
@@ -384,8 +547,6 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
             required
           />
         </div>
-
-        {/* Work Order Type (Read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Work Order Type
@@ -397,8 +558,6 @@ const ReactiveMaintenanceWorkOrderForm = ({ onBack }) => {
             readOnly
           />
         </div>
-
-        {/* Submit Button */}
         <div className="flex gap-4 pt-6">
           <button
             type="button"

@@ -1445,12 +1445,12 @@ const Sidebar = () => {
       label: "Contracts",
       permission: "view_contract",
     },
-    {
-      path: "/services",
-      icon: Wrench,
-      label: "Services",
-      permission: "view_service",
-    },
+    // {
+    //   path: "/services",
+    //   icon: Wrench,
+    //   label: "Services",
+    //   permission: "view_service",
+    // },
     {
       path: "/property-flow",
       icon: MapPin,
@@ -1469,6 +1469,14 @@ const Sidebar = () => {
       label: "Work Requests",
       permission: "view_work_request",
     },
+    //put servie page
+    {
+      path: "/services",
+      icon: Wrench,
+      label: "Services",
+      permission: "create_service",
+    },
+
     {
       path: "/work-orders",
       icon: FileText,
