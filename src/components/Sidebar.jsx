@@ -1647,7 +1647,270 @@
 
 // export default Sidebar;
 
+// "use client";
+// import { useState, useContext } from "react";
+// import { Link, useLocation } from "react-router-dom";
+// import { AuthContext } from "../context/AuthContext";
+// import { useSidebar } from "../context/SidebarContext";
+// import {
+//   Menu,
+//   X,
+//   LayoutDashboard,
+//   Users,
+//   Building2,
+//   FileText,
+//   Wrench,
+//   MapPin,
+//   Package,
+//   LogOut,
+//   User,
+//   Warehouse,
+//   CheckSquare,
+//   BarChart2,
+//   ClipboardList,
+//   CheckCircle,
+//   Calendar,
+//   ChevronLeft,
+//   ChevronRight,
+// } from "lucide-react";
+
+// const Sidebar = () => {
+//   const { user, logout } = useContext(AuthContext);
+//   const [isOpen, setIsOpen] = useState(false);
+//   const location = useLocation();
+//   const { isCollapsed, setIsCollapsed } = useSidebar();
+
+//   const toggleSidebar = () => setIsOpen(!isOpen);
+//   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+
+//   const menuItems = [
+//     {
+//       path: "/dashboard",
+//       icon: LayoutDashboard,
+//       label: "Dashboard",
+//       permission: null,
+//     },
+//     {
+//       path: "/user-management",
+//       icon: Users,
+//       label: "User Management",
+//       permission: "view_user",
+//     },
+//     { path: "/profile", icon: User, label: "Profile", permission: null },
+//     {
+//       path: "/companies",
+//       icon: Building2,
+//       label: "Companies",
+//       permission: "view_company",
+//     },
+//     {
+//       path: "/contracts",
+//       icon: FileText,
+//       label: "Contracts",
+//       permission: "view_contract",
+//     },
+//     {
+//       path: "/property-flow",
+//       icon: MapPin,
+//       label: "Property Flow",
+//       permission: "view_property_flow",
+//     },
+//     {
+//       path: "/assets",
+//       icon: Package,
+//       label: "Assets",
+//       permission: "view_asset",
+//     },
+//     {
+//       path: "/work-requests",
+//       icon: ClipboardList,
+//       label: "Work Requests",
+//       permission: "view_work_request",
+//     },
+//     {
+//       path: "/services",
+//       icon: Wrench,
+//       label: "Services",
+//       permission: "create_service",
+//     },
+//     {
+//       path: "/work-orders",
+//       icon: FileText,
+//       label: "Work Orders",
+//       permission: "view_work_order",
+//     },
+//     {
+//       path: "/approvals",
+//       icon: CheckCircle,
+//       label: "Approvals",
+//       permission: "review_work_request",
+//     },
+//     {
+//       path: "/technician-availability",
+//       icon: Calendar,
+//       label: "Technician Availability",
+//       permission: "view_technician_availability",
+//     },
+//     {
+//       path: "/calendar-management",
+//       icon: Calendar,
+//       label: "PM Schedule Calendar",
+//       permission: "create_pm_schedule",
+//     },
+//     {
+//       path: "/checklists",
+//       icon: CheckSquare,
+//       label: "Checklists",
+//       permission: "view_checklist",
+//     },
+//     {
+//       path: "/inventory",
+//       icon: Warehouse,
+//       label: "Inventory",
+//       permission: "view_inventory",
+//     },
+//     { path: "/kpi", icon: BarChart2, label: "KPI", permission: "view_kpi" },
+//     {
+//       path: "/permissionManagement",
+//       icon: Wrench,
+//       label: "Permission Management",
+//       permission: "view_permission",
+//     },
+//   ].filter(
+//     (item) => !item.permission || user?.permissions.includes(item.permission)
+//   );
+
+//   const isActivePath = (path) =>
+//     location.pathname === path || location.pathname.startsWith(path + "/");
+
+//   return (
+//     <>
+//       {/* Mobile toggle button */}
+//       <button
+//         className="md:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg"
+//         onClick={toggleSidebar}
+//       >
+//         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+//       </button>
+
+//       {/* Sidebar */}
+//       <div
+//         className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white shadow-2xl transition-all duration-300 overflow-y-auto overflow-x-hidden ${
+//           isOpen ? "translate-x-0" : "-translate-x-full"
+//         } md:translate-x-0 ${
+//           isCollapsed ? "md:w-20" : "md:w-64"
+//         } w-64 z-40 flex flex-col`}
+//       >
+//         {/* Header */}
+//         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+//           <div
+//             className={`flex items-center space-x-3 ${
+//               isCollapsed ? "md:justify-center" : ""
+//             }`}
+//           >
+//             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+//               <Menu className="w-5 h-5 text-white" />
+//             </div>
+//             {!isCollapsed && (
+//               <h1 className="text-xl font-semibold text-white md:block">
+//                 CAFM
+//               </h1>
+//             )}
+//           </div>
+//           {/* Desktop collapse button */}
+//           <button
+//             onClick={toggleCollapse}
+//             className="hidden md:flex p-1.5 rounded-lg hover:bg-gray-700 transition-colors duration-200"
+//           >
+//             {isCollapsed ? (
+//               <ChevronRight className="w-5 h-5 text-gray-300" />
+//             ) : (
+//               <ChevronLeft className="w-5 h-5 text-gray-300" />
+//             )}
+//           </button>
+//         </div>
+
+//         {/* Navigation */}
+//         <nav className="flex-1 py-4 overflow-y-auto px-3 custom-scrollbar">
+//           <ul className="space-y-1">
+//             {menuItems.map((item) => {
+//               const IconComponent = item.icon;
+//               const isActive = isActivePath(item.path);
+//               return (
+//                 <li key={item.path} className="relative group">
+//                   <Link
+//                     to={item.path}
+//                     className={`flex items-center ${
+//                       isCollapsed
+//                         ? "justify-center md:justify-center"
+//                         : "justify-start"
+//                     } px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+//                       isActive
+//                         ? "bg-blue-600 text-white shadow-lg"
+//                         : "text-gray-300 hover:bg-gray-700 hover:text-white"
+//                     }`}
+//                     onClick={() => setIsOpen(false)}
+//                   >
+//                     <IconComponent className="w-5 h-5 flex-shrink-0" />
+//                     {!isCollapsed && <span className="ml-3">{item.label}</span>}
+//                   </Link>
+//                   {/* Tooltip for collapsed state */}
+//                   {isCollapsed && (
+//                     <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
+//                       {item.label}
+//                       <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+//                     </div>
+//                   )}
+//                 </li>
+//               );
+//             })}
+//           </ul>
+//         </nav>
+
+//         {/* Bottom logout section */}
+//         <div className="border-t border-gray-700 p-3 space-y-1">
+//           <div className="relative group">
+//             <button
+//               type="button"
+//               onClick={() => {
+//                 logout();
+//                 setIsOpen(false);
+//               }}
+//               className={`flex items-center ${
+//                 isCollapsed
+//                   ? "justify-center md:justify-center"
+//                   : "justify-start"
+//               } w-full px-3 py-3 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200`}
+//             >
+//               <LogOut className="w-5 h-5 flex-shrink-0" />
+//               {!isCollapsed && <span className="ml-3">Logout</span>}
+//             </button>
+//             {/* Tooltip for collapsed state */}
+//             {isCollapsed && (
+//               <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
+//                 Logout
+//                 <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Overlay for mobile */}
+//       {isOpen && (
+//         <div
+//           className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
+//           onClick={toggleSidebar}
+//         ></div>
+//       )}
+//     </>
+//   );
+// };
+
+// export default Sidebar;
+
 "use client";
+
 import { useState, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -1659,7 +1922,6 @@ import {
   Users,
   Building2,
   FileText,
-  Wrench,
   MapPin,
   Package,
   LogOut,
@@ -1669,9 +1931,12 @@ import {
   BarChart2,
   ClipboardList,
   CheckCircle,
+  Clock, // Replaced Calendar for Technician Availability
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Wrench,
+  Key, // New icon for Permission Management
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -1696,7 +1961,12 @@ const Sidebar = () => {
       label: "User Management",
       permission: "view_user",
     },
-    { path: "/profile", icon: User, label: "Profile", permission: null },
+    {
+      path: "/profile",
+      icon: User,
+      label: "Profile",
+      permission: null,
+    },
     {
       path: "/companies",
       icon: Building2,
@@ -1735,7 +2005,7 @@ const Sidebar = () => {
     },
     {
       path: "/work-orders",
-      icon: FileText,
+      icon: FileText, // Already unique, kept as is
       label: "Work Orders",
       permission: "view_work_order",
     },
@@ -1747,7 +2017,7 @@ const Sidebar = () => {
     },
     {
       path: "/technician-availability",
-      icon: Calendar,
+      icon: Clock, // Changed from Calendar to Clock
       label: "Technician Availability",
       permission: "view_technician_availability",
     },
@@ -1769,10 +2039,15 @@ const Sidebar = () => {
       label: "Inventory",
       permission: "view_inventory",
     },
-    { path: "/kpi", icon: BarChart2, label: "KPI", permission: "view_kpi" },
+    {
+      path: "/kpi",
+      icon: BarChart2,
+      label: "KPI",
+      permission: "view_kpi",
+    },
     {
       path: "/permissionManagement",
-      icon: Wrench,
+      icon: Key, // Changed from Wrench to Key
       label: "Permission Management",
       permission: "view_permission",
     },

@@ -307,7 +307,7 @@
 
 import { useState, useEffect } from "react";
 import { Save, Upload, X, Zap } from "lucide-react";
-import { workRequestService } from "../../services/WorkRequestService";
+import { workRequestService } from "../../services/workRequestService";
 import { assetService } from "../../services/assetService";
 import { contractService } from "../../services/contractService";
 import { toast } from "react-toastify";

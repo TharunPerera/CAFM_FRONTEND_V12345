@@ -350,28 +350,920 @@
 
 // export default PreventiveMaintenanceForm;
 
+// "use client";
+// import { useState, useEffect } from "react";
+// import { Save, Shield } from "lucide-react";
+// import { workRequestService } from "../../services/WorkRequestService";
+// import { assetService } from "../../services/assetService";
+// import { contractService } from "../../services/contractService";
+// import { toast } from "react-toastify";
+
+// const PreventiveMaintenanceForm = ({ onBack }) => {
+//   const [formData, setFormData] = useState({
+//     assetIds: [],
+//     frequency: "DAYS_30",
+//     contractId: "",
+//     reasonComment: "",
+//     startDate: "",
+//     endDate: "",
+//     name: "", // Added name field
+//   });
+//   const [loading, setLoading] = useState(false);
+//   const [contracts, setContracts] = useState([]);
+//   const [assets, setAssets] = useState([]);
+//   const [loadingAssets, setLoadingAssets] = useState(false);
+
+//   const frequencyOptions = [
+//     { value: "DAYS_1", label: "Every 1 Days" },
+//     { value: "DAYS_30", label: "Every 30 Days" },
+//     { value: "DAYS_60", label: "Every 60 Days" },
+//     { value: "DAYS_90", label: "Every 90 Days" },
+//     { value: "DAYS_120", label: "Every 120 Days" },
+//     { value: "DAYS_180", label: "Every 180 Days" },
+//   ];
+
+//   useEffect(() => {
+//     loadContracts();
+//   }, []);
+
+//   useEffect(() => {
+//     if (formData.contractId) {
+//       loadAssets();
+//     } else {
+//       setAssets([]);
+//       setFormData((prev) => ({ ...prev, assetIds: [] }));
+//     }
+//   }, [formData.contractId]);
+
+//   const loadContracts = async () => {
+//     try {
+//       const response = await contractService.getAllContracts();
+//       setContracts(response.data || []);
+//     } catch (error) {
+//       console.error("Error loading contracts:", error);
+//       toast.error("Failed to load contracts");
+//     }
+//   };
+
+//   const loadAssets = async () => {
+//     setLoadingAssets(true);
+//     try {
+//       const response = await assetService.getAssetsByContract(
+//         formData.contractId
+//       );
+//       setAssets(response.data || []);
+//     } catch (error) {
+//       console.error("Error loading assets:", error);
+//       toast.error("Failed to load assets");
+//     } finally {
+//       setLoadingAssets(false);
+//     }
+//   };
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleAssetSelection = (assetId) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       assetIds: prev.assetIds.includes(assetId)
+//         ? prev.assetIds.filter((id) => id !== assetId)
+//         : [...prev.assetIds, assetId],
+//     }));
+//   };
+
+//   const selectAllAssets = () => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       assetIds: assets.map((asset) => asset.assetId),
+//     }));
+//   };
+
+//   const clearAllAssets = () => {
+//     setFormData((prev) => ({ ...prev, assetIds: [] }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!formData.name) {
+//       toast.error("Please enter a schedule name");
+//       return;
+//     }
+//     if (!formData.contractId) {
+//       toast.error("Please select a contract");
+//       return;
+//     }
+//     if (formData.assetIds.length === 0) {
+//       toast.error("Please select at least one asset");
+//       return;
+//     }
+//     if (!formData.startDate || !formData.endDate) {
+//       toast.error("Please select start and end dates");
+//       return;
+//     }
+//     if (new Date(formData.startDate) >= new Date(formData.endDate)) {
+//       toast.error("End date must be after start date");
+//       return;
+//     }
+//     setLoading(true);
+//     try {
+//       await workRequestService.createPmSchedule(formData);
+//       toast.success("Preventive maintenance schedule created successfully");
+//       setFormData({
+//         assetIds: [],
+//         frequency: "DAYS_30",
+//         contractId: "",
+//         reasonComment: "",
+//         startDate: "",
+//         endDate: "",
+//         name: "",
+//       });
+//       onBack();
+//     } catch (error) {
+//       console.error("Error creating PM schedule:", error);
+//       toast.error(
+//         error.response?.data?.message || "Failed to create PM schedule"
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto">
+//       <div className="text-center mb-8">
+//         <div className="inline-flex p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-md mb-4">
+//           <Shield className="w-8 h-8 text-white" />
+//         </div>
+//         <h2 className="text-2xl font-bold text-gray-900 mb-2">
+//           Preventive Plan Maintenance Work Request
+//         </h2>
+//         <p className="text-gray-600">
+//           Create a preventive maintenance schedule for multiple assets
+//         </p>
+//       </div>
+//       <form onSubmit={handleSubmit} className="space-y-6">
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+//           {/* Schedule Name */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Schedule Name <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="text"
+//               name="name"
+//               value={formData.name}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               placeholder="Enter schedule name"
+//               required
+//             />
+//           </div>
+//           {/* Contract Selection */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Contract <span className="text-red-500">*</span>
+//             </label>
+//             <select
+//               name="contractId"
+//               value={formData.contractId}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             >
+//               <option value="">Select Contract</option>
+//               {contracts.map((contract) => (
+//                 <option key={contract.contractId} value={contract.contractId}>
+//                   {contract.contractName}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           {/* Frequency */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Frequency <span className="text-red-500">*</span>
+//             </label>
+//             <select
+//               name="frequency"
+//               value={formData.frequency}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             >
+//               {frequencyOptions.map((option) => (
+//                 <option key={option.value} value={option.value}>
+//                   {option.label}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           {/* Start Date */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Start Date <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="date"
+//               name="startDate"
+//               value={formData.startDate}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             />
+//           </div>
+//           {/* End Date */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               End Date <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="date"
+//               name="endDate"
+//               value={formData.endDate}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             />
+//           </div>
+//         </div>
+//         {/* Reason Comment */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Reason/Comment
+//           </label>
+//           <textarea
+//             name="reasonComment"
+//             value={formData.reasonComment}
+//             onChange={handleInputChange}
+//             rows={3}
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//             placeholder="Describe the preventive maintenance plan..."
+//           />
+//         </div>
+//         {/* Asset Selection */}
+//         <div>
+//           <div className="flex items-center justify-between mb-4">
+//             <label className="block text-sm font-medium text-gray-700">
+//               Select Assets <span className="text-red-500">*</span>
+//             </label>
+//             {assets.length > 0 && (
+//               <div className="flex gap-2">
+//                 <button
+//                   type="button"
+//                   onClick={selectAllAssets}
+//                   className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+//                 >
+//                   Select All
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={clearAllAssets}
+//                   className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+//                 >
+//                   Clear All
+//                 </button>
+//               </div>
+//             )}
+//           </div>
+//           {loadingAssets ? (
+//             <div className="text-center py-8">
+//               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+//               <p className="text-gray-600 mt-2">Loading assets...</p>
+//             </div>
+//           ) : assets.length === 0 ? (
+//             <div className="text-center py-8 text-gray-500">
+//               {formData.contractId
+//                 ? "No assets found for selected contract"
+//                 : "Please select a contract first"}
+//             </div>
+//           ) : (
+//             <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
+//               {assets.map((asset) => (
+//                 <label
+//                   key={asset.assetId}
+//                   className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+//                 >
+//                   <input
+//                     type="checkbox"
+//                     checked={formData.assetIds.includes(asset.assetId)}
+//                     onChange={() => handleAssetSelection(asset.assetId)}
+//                     className="mr-3 w-4 h-4 text-green-600 rounded focus:ring-green-500"
+//                   />
+//                   <div className="flex-1">
+//                     <div className="font-medium text-gray-900">
+//                       {asset.assetTag} - {asset.assetName}
+//                     </div>
+//                     <div className="text-sm text-gray-500">
+//                       {asset.buildingName}, {asset.floorName}, {asset.roomName}
+//                     </div>
+//                   </div>
+//                 </label>
+//               ))}
+//             </div>
+//           )}
+//           {formData.assetIds.length > 0 && (
+//             <p className="text-sm text-green-600 mt-2">
+//               {formData.assetIds.length} asset(s) selected
+//             </p>
+//           )}
+//         </div>
+//         {/* Submit Button */}
+//         <div className="flex gap-4 pt-6">
+//           <button
+//             type="button"
+//             onClick={onBack}
+//             className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 transition-all shadow-lg hover:shadow-xl"
+//           >
+//             {loading ? (
+//               <>
+//                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+//                 Creating...
+//               </>
+//             ) : (
+//               <>
+//                 <Save className="w-5 h-5 mr-2" />
+//                 Create PM Schedule
+//               </>
+//             )}
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default PreventiveMaintenanceForm;
+
+// "use client";
+// import { useState, useEffect } from "react";
+// import { Save, Shield } from "lucide-react";
+// import { workRequestService } from "../../services/workRequestService";
+// import { assetService } from "../../services/assetService";
+// import { contractService } from "../../services/contractService";
+// import { checklistService } from "../../services/checklistService";
+// import { toast } from "react-toastify";
+
+// const PreventiveMaintenanceForm = ({ onBack }) => {
+//   const [formData, setFormData] = useState({
+//     assetSchedules: [], // Changed from assetIds to assetSchedules
+//     frequency: "DAYS_30",
+//     contractId: "",
+//     reasonComment: "",
+//     startDate: "",
+//     endDate: "",
+//     name: "",
+//   });
+//   const [loading, setLoading] = useState(false);
+//   const [contracts, setContracts] = useState([]);
+//   const [assets, setAssets] = useState([]);
+//   const [loadingAssets, setLoadingAssets] = useState(false);
+//   const [serviceScopes, setServiceScopes] = useState({});
+//   const [checklists, setChecklists] = useState({});
+//   const [loadingServiceScopes, setLoadingServiceScopes] = useState({});
+//   const [loadingChecklists, setLoadingChecklists] = useState({});
+
+//   const frequencyOptions = [
+//     { value: "DAYS_1", label: "Every 1 Days" },
+//     { value: "DAYS_30", label: "Every 30 Days" },
+//     { value: "DAYS_60", label: "Every 60 Days" },
+//     { value: "DAYS_90", label: "Every 90 Days" },
+//     { value: "DAYS_120", label: "Every 120 Days" },
+//     { value: "DAYS_180", label: "Every 180 Days" },
+//   ];
+
+//   useEffect(() => {
+//     loadContracts();
+//   }, []);
+
+//   useEffect(() => {
+//     if (formData.contractId) {
+//       loadAssets();
+//     } else {
+//       setAssets([]);
+//       setFormData((prev) => ({ ...prev, assetSchedules: [] }));
+//     }
+//   }, [formData.contractId]);
+
+//   const loadContracts = async () => {
+//     try {
+//       const response = await contractService.getAllContracts();
+//       setContracts(response.data || []);
+//     } catch (error) {
+//       console.error("Error loading contracts:", error);
+//       toast.error("Failed to load contracts");
+//     }
+//   };
+
+//   const loadAssets = async () => {
+//     setLoadingAssets(true);
+//     try {
+//       const response = await assetService.getAssetsByContract(
+//         formData.contractId
+//       );
+//       setAssets(response.data || []);
+//     } catch (error) {
+//       console.error("Error loading assets:", error);
+//       toast.error("Failed to load assets");
+//     } finally {
+//       setLoadingAssets(false);
+//     }
+//   };
+
+//   const loadServiceScopes = async (assetId) => {
+//     setLoadingServiceScopes((prev) => ({ ...prev, [assetId]: true }));
+//     try {
+//       const response = await assetService.getAssetServiceScopes(assetId);
+//       setServiceScopes((prev) => ({ ...prev, [assetId]: response.data || [] }));
+//     } catch (error) {
+//       console.error(
+//         `Error loading service scopes for asset ${assetId}:`,
+//         error
+//       );
+//       toast.error(`Failed to load service scopes for asset ${assetId}`);
+//     } finally {
+//       setLoadingServiceScopes((prev) => ({ ...prev, [assetId]: false }));
+//     }
+//   };
+
+//   const loadChecklists = async (assetId, serviceScopeId) => {
+//     setLoadingChecklists((prev) => ({ ...prev, [assetId]: true }));
+//     try {
+//       const response = await checklistService.getChecklistsByServiceScope(
+//         serviceScopeId
+//       );
+//       setChecklists((prev) => ({ ...prev, [assetId]: response.data || [] }));
+//     } catch (error) {
+//       console.error(
+//         `Error loading checklists for service scope ${serviceScopeId}:`,
+//         error
+//       );
+//       toast.error(`Failed to load checklists for asset ${assetId}`);
+//     } finally {
+//       setLoadingChecklists((prev) => ({ ...prev, [assetId]: false }));
+//     }
+//   };
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleAssetSelection = (assetId) => {
+//     setFormData((prev) => {
+//       const assetSchedules = prev.assetSchedules;
+//       if (assetSchedules.some((as) => as.assetId === assetId)) {
+//         return {
+//           ...prev,
+//           assetSchedules: assetSchedules.filter((as) => as.assetId !== assetId),
+//         };
+//       } else {
+//         loadServiceScopes(assetId); // Load service scopes when asset is selected
+//         return {
+//           ...prev,
+//           assetSchedules: [
+//             ...assetSchedules,
+//             { assetId, serviceScopeId: "", checklistId: "" },
+//           ],
+//         };
+//       }
+//     });
+//   };
+
+//   const handleServiceScopeChange = (assetId, serviceScopeId) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       assetSchedules: prev.assetSchedules.map((as) =>
+//         as.assetId === assetId ? { ...as, serviceScopeId, checklistId: "" } : as
+//       ),
+//     }));
+//     if (serviceScopeId) {
+//       loadChecklists(assetId, serviceScopeId); // Load checklists when service scope is selected
+//     } else {
+//       setChecklists((prev) => ({ ...prev, [assetId]: [] }));
+//     }
+//   };
+
+//   const handleChecklistChange = (assetId, checklistId) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       assetSchedules: prev.assetSchedules.map((as) =>
+//         as.assetId === assetId ? { ...as, checklistId } : as
+//       ),
+//     }));
+//   };
+
+//   const selectAllAssets = () => {
+//     const newAssetSchedules = assets.map((asset) => ({
+//       assetId: asset.assetId,
+//       serviceScopeId: "",
+//       checklistId: "",
+//     }));
+//     setFormData((prev) => ({ ...prev, assetSchedules: newAssetSchedules }));
+//     assets.forEach((asset) => loadServiceScopes(asset.assetId));
+//   };
+
+//   const clearAllAssets = () => {
+//     setFormData((prev) => ({ ...prev, assetSchedules: [] }));
+//     setServiceScopes({});
+//     setChecklists({});
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!formData.name) {
+//       toast.error("Please enter a schedule name");
+//       return;
+//     }
+//     if (!formData.contractId) {
+//       toast.error("Please select a contract");
+//       return;
+//     }
+//     if (formData.assetSchedules.length === 0) {
+//       toast.error("Please select at least one asset");
+//       return;
+//     }
+//     if (!formData.startDate || !formData.endDate) {
+//       toast.error("Please select start and end dates");
+//       return;
+//     }
+//     if (new Date(formData.startDate) >= new Date(formData.endDate)) {
+//       toast.error("End date must be after start date");
+//       return;
+//     }
+//     for (const assetSchedule of formData.assetSchedules) {
+//       if (!assetSchedule.serviceScopeId) {
+//         toast.error(
+//           `Please select a service scope for asset ID ${assetSchedule.assetId}`
+//         );
+//         return;
+//       }
+//       if (!assetSchedule.checklistId) {
+//         toast.error(
+//           `Please select a checklist for asset ID ${assetSchedule.assetId}`
+//         );
+//         return;
+//       }
+//     }
+//     setLoading(true);
+//     try {
+//       await workRequestService.createPmSchedule(formData);
+//       toast.success("Preventive maintenance schedule created successfully");
+//       setFormData({
+//         assetSchedules: [],
+//         frequency: "DAYS_30",
+//         contractId: "",
+//         reasonComment: "",
+//         startDate: "",
+//         endDate: "",
+//         name: "",
+//       });
+//       setServiceScopes({});
+//       setChecklists({});
+//       onBack();
+//     } catch (error) {
+//       console.error("Error creating PM schedule:", error);
+//       toast.error(
+//         error.response?.data?.message || "Failed to create PM schedule"
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto">
+//       <div className="text-center mb-8">
+//         <div className="inline-flex p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-md mb-4">
+//           <Shield className="w-8 h-8 text-white" />
+//         </div>
+//         <h2 className="text-2xl font-bold text-gray-900 mb-2">
+//           Preventive Plan Maintenance Work Request
+//         </h2>
+//         <p className="text-gray-600">
+//           Create a preventive maintenance schedule for multiple assets
+//         </p>
+//       </div>
+//       <form onSubmit={handleSubmit} className="space-y-6">
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+//           {/* Schedule Name */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Schedule Name <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="text"
+//               name="name"
+//               value={formData.name}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               placeholder="Enter schedule name"
+//               required
+//             />
+//           </div>
+//           {/* Contract Selection */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Contract <span className="text-red-500">*</span>
+//             </label>
+//             <select
+//               name="contractId"
+//               value={formData.contractId}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             >
+//               <option value="">Select Contract</option>
+//               {contracts.map((contract) => (
+//                 <option key={contract.contractId} value={contract.contractId}>
+//                   {contract.contractName}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           {/* Frequency */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Frequency <span className="text-red-500">*</span>
+//             </label>
+//             <select
+//               name="frequency"
+//               value={formData.frequency}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             >
+//               {frequencyOptions.map((option) => (
+//                 <option key={option.value} value={option.value}>
+//                   {option.label}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           {/* Start Date */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               Start Date <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="date"
+//               name="startDate"
+//               value={formData.startDate}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             />
+//           </div>
+//           {/* End Date */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-2">
+//               End Date <span className="text-red-500">*</span>
+//             </label>
+//             <input
+//               type="date"
+//               name="endDate"
+//               value={formData.endDate}
+//               onChange={handleInputChange}
+//               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//               required
+//             />
+//           </div>
+//         </div>
+//         {/* Reason Comment */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-2">
+//             Reason/Comment
+//           </label>
+//           <textarea
+//             name="reasonComment"
+//             value={formData.reasonComment}
+//             onChange={handleInputChange}
+//             rows={3}
+//             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//             placeholder="Describe the preventive maintenance plan..."
+//           />
+//         </div>
+//         {/* Asset Selection */}
+//         <div>
+//           <div className="flex items-center justify-between mb-4">
+//             <label className="block text-sm font-medium text-gray-700">
+//               Select Assets <span className="text-red-500">*</span>
+//             </label>
+//             {assets.length > 0 && (
+//               <div className="flex gap-2">
+//                 <button
+//                   type="button"
+//                   onClick={selectAllAssets}
+//                   className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+//                 >
+//                   Select All
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={clearAllAssets}
+//                   className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+//                 >
+//                   Clear All
+//                 </button>
+//               </div>
+//             )}
+//           </div>
+//           {loadingAssets ? (
+//             <div className="text-center py-8">
+//               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+//               <p className="text-gray-600 mt-2">Loading assets...</p>
+//             </div>
+//           ) : assets.length === 0 ? (
+//             <div className="text-center py-8 text-gray-500">
+//               {formData.contractId
+//                 ? "No assets found for selected contract"
+//                 : "Please select a contract first"}
+//             </div>
+//           ) : (
+//             <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
+//               {assets.map((asset) => {
+//                 const isSelected = formData.assetSchedules.some(
+//                   (as) => as.assetId === asset.assetId
+//                 );
+//                 const assetSchedule =
+//                   formData.assetSchedules.find(
+//                     (as) => as.assetId === asset.assetId
+//                   ) || {};
+//                 return (
+//                   <div
+//                     key={asset.assetId}
+//                     className="p-3 border-b border-gray-100 last:border-b-0"
+//                   >
+//                     <label className="flex items-center hover:bg-gray-50 cursor-pointer">
+//                       <input
+//                         type="checkbox"
+//                         checked={isSelected}
+//                         onChange={() => handleAssetSelection(asset.assetId)}
+//                         className="mr-3 w-4 h-4 text-green-600 rounded focus:ring-green-500"
+//                       />
+//                       <div className="flex-1">
+//                         <div className="font-medium text-gray-900">
+//                           {asset.assetTag} - {asset.assetName}
+//                         </div>
+//                         <div className="text-sm text-gray-500">
+//                           {asset.buildingName}, {asset.floorName},{" "}
+//                           {asset.roomName}
+//                         </div>
+//                       </div>
+//                     </label>
+//                     {isSelected && (
+//                       <div className="mt-2 ml-7 space-y-2">
+//                         <div>
+//                           <label className="block text-xs font-medium text-gray-700 mb-1">
+//                             Service Scope{" "}
+//                             <span className="text-red-500">*</span>
+//                           </label>
+//                           {loadingServiceScopes[asset.assetId] ? (
+//                             <div className="text-xs text-gray-600">
+//                               Loading service scopes...
+//                             </div>
+//                           ) : (
+//                             <select
+//                               value={assetSchedule.serviceScopeId || ""}
+//                               onChange={(e) =>
+//                                 handleServiceScopeChange(
+//                                   asset.assetId,
+//                                   e.target.value
+//                                 )
+//                               }
+//                               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                             >
+//                               <option value="">Select Service Scope</option>
+//                               {(serviceScopes[asset.assetId] || []).map(
+//                                 (scope) => (
+//                                   <option
+//                                     key={scope.scopeId}
+//                                     value={scope.scopeId}
+//                                   >
+//                                     {scope.scopeName}
+//                                   </option>
+//                                 )
+//                               )}
+//                             </select>
+//                           )}
+//                         </div>
+//                         <div>
+//                           <label className="block text-xs font-medium text-gray-700 mb-1">
+//                             Checklist <span className="text-red-500">*</span>
+//                           </label>
+//                           {loadingChecklists[asset.assetId] ? (
+//                             <div className="text-xs text-gray-600">
+//                               Loading checklists...
+//                             </div>
+//                           ) : (
+//                             <select
+//                               value={assetSchedule.checklistId || ""}
+//                               onChange={(e) =>
+//                                 handleChecklistChange(
+//                                   asset.assetId,
+//                                   e.target.value
+//                                 )
+//                               }
+//                               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+//                               disabled={!assetSchedule.serviceScopeId}
+//                             >
+//                               <option value="">Select Checklist</option>
+//                               {(checklists[asset.assetId] || []).map(
+//                                 (checklist) => (
+//                                   <option
+//                                     key={checklist.checklistId}
+//                                     value={checklist.checklistId}
+//                                   >
+//                                     {checklist.name}
+//                                   </option>
+//                                 )
+//                               )}
+//                             </select>
+//                           )}
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           )}
+//           {formData.assetSchedules.length > 0 && (
+//             <p className="text-sm text-green-600 mt-2">
+//               {formData.assetSchedules.length} asset(s) selected
+//             </p>
+//           )}
+//         </div>
+//         {/* Submit Button */}
+//         <div className="flex gap-4 pt-6">
+//           <button
+//             type="button"
+//             onClick={onBack}
+//             className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 transition-all shadow-lg hover:shadow-xl"
+//           >
+//             {loading ? (
+//               <>
+//                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+//                 Creating...
+//               </>
+//             ) : (
+//               <>
+//                 <Save className="w-5 h-5 mr-2" />
+//                 Create PM Schedule
+//               </>
+//             )}
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default PreventiveMaintenanceForm;
+
 "use client";
 import { useState, useEffect } from "react";
 import { Save, Shield } from "lucide-react";
-import { workRequestService } from "../../services/WorkRequestService";
+import { workRequestService } from "../../services/workRequestService";
 import { assetService } from "../../services/assetService";
 import { contractService } from "../../services/contractService";
+import { checklistService } from "../../services/checklistService";
 import { toast } from "react-toastify";
 
 const PreventiveMaintenanceForm = ({ onBack }) => {
   const [formData, setFormData] = useState({
-    assetIds: [],
+    assetSchedules: [],
     frequency: "DAYS_30",
     contractId: "",
     reasonComment: "",
     startDate: "",
     endDate: "",
-    name: "", // Added name field
+    name: "",
   });
   const [loading, setLoading] = useState(false);
   const [contracts, setContracts] = useState([]);
   const [assets, setAssets] = useState([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
+  const [serviceScopes, setServiceScopes] = useState({});
+  const [checklists, setChecklists] = useState({});
+  const [loadingServiceScopes, setLoadingServiceScopes] = useState({});
+  const [loadingChecklists, setLoadingChecklists] = useState({});
 
   const frequencyOptions = [
     { value: "DAYS_1", label: "Every 1 Days" },
@@ -391,7 +1283,9 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
       loadAssets();
     } else {
       setAssets([]);
-      setFormData((prev) => ({ ...prev, assetIds: [] }));
+      setFormData((prev) => ({ ...prev, assetSchedules: [] }));
+      setServiceScopes({});
+      setChecklists({});
     }
   }, [formData.contractId]);
 
@@ -420,29 +1314,122 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
     }
   };
 
+  const loadServiceScopes = async (assetId) => {
+    setLoadingServiceScopes((prev) => ({ ...prev, [assetId]: true }));
+    try {
+      // Use getAssetById instead of getAssetServiceScopes
+      const response = await assetService.getAssetById(assetId);
+      const asset = response.data;
+
+      // Extract all service scopes from sub-services
+      const allServiceScopes = [];
+      if (asset.subServices && asset.subServices.length > 0) {
+        asset.subServices.forEach((subService) => {
+          if (subService.serviceScopeIds && subService.serviceScopeNames) {
+            subService.serviceScopeIds.forEach((scopeId, index) => {
+              allServiceScopes.push({
+                scopeId: scopeId,
+                scopeName: subService.serviceScopeNames[index],
+                subServiceName: subService.subServiceName,
+              });
+            });
+          }
+        });
+      }
+
+      setServiceScopes((prev) => ({ ...prev, [assetId]: allServiceScopes }));
+    } catch (error) {
+      console.error(
+        `Error loading service scopes for asset ${assetId}:`,
+        error
+      );
+      toast.error(`Failed to load service scopes for asset ${assetId}`);
+    } finally {
+      setLoadingServiceScopes((prev) => ({ ...prev, [assetId]: false }));
+    }
+  };
+
+  const loadChecklists = async (assetId, serviceScopeId) => {
+    setLoadingChecklists((prev) => ({ ...prev, [assetId]: true }));
+    try {
+      const response = await checklistService.getChecklistsByServiceScope(
+        serviceScopeId
+      );
+      setChecklists((prev) => ({ ...prev, [assetId]: response.data || [] }));
+    } catch (error) {
+      console.error(
+        `Error loading checklists for service scope ${serviceScopeId}:`,
+        error
+      );
+      toast.error(`Failed to load checklists for asset ${assetId}`);
+    } finally {
+      setLoadingChecklists((prev) => ({ ...prev, [assetId]: false }));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAssetSelection = (assetId) => {
+    setFormData((prev) => {
+      const assetSchedules = prev.assetSchedules;
+      if (assetSchedules.some((as) => as.assetId === assetId)) {
+        return {
+          ...prev,
+          assetSchedules: assetSchedules.filter((as) => as.assetId !== assetId),
+        };
+      } else {
+        loadServiceScopes(assetId); // Load service scopes when asset is selected
+        return {
+          ...prev,
+          assetSchedules: [
+            ...assetSchedules,
+            { assetId, serviceScopeId: "", checklistId: "" },
+          ],
+        };
+      }
+    });
+  };
+
+  const handleServiceScopeChange = (assetId, serviceScopeId) => {
     setFormData((prev) => ({
       ...prev,
-      assetIds: prev.assetIds.includes(assetId)
-        ? prev.assetIds.filter((id) => id !== assetId)
-        : [...prev.assetIds, assetId],
+      assetSchedules: prev.assetSchedules.map((as) =>
+        as.assetId === assetId ? { ...as, serviceScopeId, checklistId: "" } : as
+      ),
+    }));
+    if (serviceScopeId) {
+      loadChecklists(assetId, serviceScopeId);
+    } else {
+      setChecklists((prev) => ({ ...prev, [assetId]: [] }));
+    }
+  };
+
+  const handleChecklistChange = (assetId, checklistId) => {
+    setFormData((prev) => ({
+      ...prev,
+      assetSchedules: prev.assetSchedules.map((as) =>
+        as.assetId === assetId ? { ...as, checklistId } : as
+      ),
     }));
   };
 
   const selectAllAssets = () => {
-    setFormData((prev) => ({
-      ...prev,
-      assetIds: assets.map((asset) => asset.assetId),
+    const newAssetSchedules = assets.map((asset) => ({
+      assetId: asset.assetId,
+      serviceScopeId: "",
+      checklistId: "",
     }));
+    setFormData((prev) => ({ ...prev, assetSchedules: newAssetSchedules }));
+    assets.forEach((asset) => loadServiceScopes(asset.assetId));
   };
 
   const clearAllAssets = () => {
-    setFormData((prev) => ({ ...prev, assetIds: [] }));
+    setFormData((prev) => ({ ...prev, assetSchedules: [] }));
+    setServiceScopes({});
+    setChecklists({});
   };
 
   const handleSubmit = async (e) => {
@@ -455,7 +1442,7 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
       toast.error("Please select a contract");
       return;
     }
-    if (formData.assetIds.length === 0) {
+    if (formData.assetSchedules.length === 0) {
       toast.error("Please select at least one asset");
       return;
     }
@@ -467,12 +1454,26 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
       toast.error("End date must be after start date");
       return;
     }
+    for (const assetSchedule of formData.assetSchedules) {
+      if (!assetSchedule.serviceScopeId) {
+        toast.error(
+          `Please select a service scope for asset ID ${assetSchedule.assetId}`
+        );
+        return;
+      }
+      if (!assetSchedule.checklistId) {
+        toast.error(
+          `Please select a checklist for asset ID ${assetSchedule.assetId}`
+        );
+        return;
+      }
+    }
     setLoading(true);
     try {
       await workRequestService.createPmSchedule(formData);
       toast.success("Preventive maintenance schedule created successfully");
       setFormData({
-        assetIds: [],
+        assetSchedules: [],
         frequency: "DAYS_30",
         contractId: "",
         reasonComment: "",
@@ -480,6 +1481,8 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
         endDate: "",
         name: "",
       });
+      setServiceScopes({});
+      setChecklists({});
       onBack();
     } catch (error) {
       console.error("Error creating PM schedule:", error);
@@ -641,32 +1644,121 @@ const PreventiveMaintenanceForm = ({ onBack }) => {
             </div>
           ) : (
             <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
-              {assets.map((asset) => (
-                <label
-                  key={asset.assetId}
-                  className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.assetIds.includes(asset.assetId)}
-                    onChange={() => handleAssetSelection(asset.assetId)}
-                    className="mr-3 w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">
-                      {asset.assetTag} - {asset.assetName}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {asset.buildingName}, {asset.floorName}, {asset.roomName}
-                    </div>
+              {assets.map((asset) => {
+                const isSelected = formData.assetSchedules.some(
+                  (as) => as.assetId === asset.assetId
+                );
+                const assetSchedule =
+                  formData.assetSchedules.find(
+                    (as) => as.assetId === asset.assetId
+                  ) || {};
+                return (
+                  <div
+                    key={asset.assetId}
+                    className="p-3 border-b border-gray-100 last:border-b-0"
+                  >
+                    <label className="flex items-center hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleAssetSelection(asset.assetId)}
+                        className="mr-3 w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">
+                          {asset.assetTag} - {asset.assetName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {asset.buildingName}, {asset.floorName},{" "}
+                          {asset.roomName}
+                        </div>
+                      </div>
+                    </label>
+                    {isSelected && (
+                      <div className="mt-2 ml-7 space-y-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Service Scope{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          {loadingServiceScopes[asset.assetId] ? (
+                            <div className="text-xs text-gray-600">
+                              Loading service scopes...
+                            </div>
+                          ) : (serviceScopes[asset.assetId] || []).length ===
+                            0 ? (
+                            <div className="text-xs text-gray-600">
+                              No service scopes available
+                            </div>
+                          ) : (
+                            <select
+                              value={assetSchedule.serviceScopeId || ""}
+                              onChange={(e) =>
+                                handleServiceScopeChange(
+                                  asset.assetId,
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            >
+                              <option value="">Select Service Scope</option>
+                              {(serviceScopes[asset.assetId] || []).map(
+                                (scope) => (
+                                  <option
+                                    key={scope.scopeId}
+                                    value={scope.scopeId}
+                                  >
+                                    {scope.scopeName} ({scope.subServiceName})
+                                  </option>
+                                )
+                              )}
+                            </select>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Checklist <span className="text-red-500">*</span>
+                          </label>
+                          {loadingChecklists[asset.assetId] ? (
+                            <div className="text-xs text-gray-600">
+                              Loading checklists...
+                            </div>
+                          ) : (
+                            <select
+                              value={assetSchedule.checklistId || ""}
+                              onChange={(e) =>
+                                handleChecklistChange(
+                                  asset.assetId,
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              disabled={!assetSchedule.serviceScopeId}
+                            >
+                              <option value="">Select Checklist</option>
+                              {(checklists[asset.assetId] || []).map(
+                                (checklist) => (
+                                  <option
+                                    key={checklist.checklistId}
+                                    value={checklist.checklistId}
+                                  >
+                                    {checklist.name}
+                                  </option>
+                                )
+                              )}
+                            </select>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </label>
-              ))}
+                );
+              })}
             </div>
           )}
-          {formData.assetIds.length > 0 && (
+          {formData.assetSchedules.length > 0 && (
             <p className="text-sm text-green-600 mt-2">
-              {formData.assetIds.length} asset(s) selected
+              {formData.assetSchedules.length} asset(s) selected
             </p>
           )}
         </div>
