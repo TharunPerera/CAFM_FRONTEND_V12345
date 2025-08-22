@@ -23,6 +23,7 @@
 //     companyId: "",
 //     userType: "INTERNAL",
 //   });
+
 //   const [roles, setRoles] = useState([]);
 //   const [companies, setCompanies] = useState([]);
 //   const [loading, setLoading] = useState(false);
@@ -119,10 +120,19 @@
 //     try {
 //       let response;
 //       if (isEdit) {
+//         // Use the correct endpoint: PUT /api/users/{id}/{userType}
+//         const updateData = {
+//           email: formData.email,
+//           firstName: formData.firstName,
+//           lastName: formData.lastName,
+//           roleId: formData.roleId,
+//           companyId: formData.companyId,
+//           userType: formData.userType,
+//         };
 //         response = await userService.updateUser(
 //           user.userId,
 //           user.userType,
-//           formData
+//           updateData
 //         );
 //       } else {
 //         response = await userService.createUser(formData);
@@ -130,6 +140,7 @@
 //           setGeneratedPassword(response.data.generatedPassword);
 //         }
 //       }
+
 //       onSuccess();
 //       if (!isEdit) {
 //         // Show generated password for new users
@@ -438,6 +449,7 @@
 //   Save,
 //   Eye,
 //   EyeOff,
+//   Image,
 // } from "lucide-react";
 // import { userService } from "../../services/userService";
 // import { companyService } from "../../services/companyService";
@@ -450,15 +462,15 @@
 //     roleId: "",
 //     companyId: "",
 //     userType: "INTERNAL",
+//     profileImage: null, // New field for profile image
 //   });
-
 //   const [roles, setRoles] = useState([]);
 //   const [companies, setCompanies] = useState([]);
 //   const [loading, setLoading] = useState(false);
 //   const [errors, setErrors] = useState({});
 //   const [showPassword, setShowPassword] = useState(false);
 //   const [generatedPassword, setGeneratedPassword] = useState("");
-
+//   const [employeeCodeId, setEmployeeCodeId] = useState(""); // New state for employeeCodeId
 //   const isEdit = !!user;
 
 //   useEffect(() => {
@@ -473,7 +485,9 @@
 //           roleId: user.roleId || "",
 //           companyId: user.companyId || "",
 //           userType: user.userType || "INTERNAL",
+//           profileImage: null, // Reset for edit
 //         });
+//         setEmployeeCodeId(user.employeeCodeId || ""); // Set employeeCodeId for edit
 //       } else {
 //         resetForm();
 //       }
@@ -506,36 +520,38 @@
 //       roleId: "",
 //       companyId: "",
 //       userType: "INTERNAL",
+//       profileImage: null,
 //     });
 //     setErrors({});
 //     setGeneratedPassword("");
+//     setEmployeeCodeId("");
 //   };
 
 //   const validateForm = () => {
 //     const newErrors = {};
-
 //     if (!formData.email.trim()) {
 //       newErrors.email = "Email is required";
 //     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
 //       newErrors.email = "Invalid email format";
 //     }
-
 //     if (!formData.firstName.trim()) {
 //       newErrors.firstName = "First name is required";
 //     }
-
 //     if (!formData.lastName.trim()) {
 //       newErrors.lastName = "Last name is required";
 //     }
-
 //     if (!formData.roleId) {
 //       newErrors.roleId = "Role is required";
 //     }
-
 //     if (formData.userType === "COMPANY" && !formData.companyId) {
 //       newErrors.companyId = "Company is required for company users";
 //     }
-
+//     if (
+//       formData.profileImage &&
+//       !["image/jpeg", "image/png"].includes(formData.profileImage.type)
+//     ) {
+//       newErrors.profileImage = "Only JPEG or PNG images are allowed";
+//     }
 //     setErrors(newErrors);
 //     return Object.keys(newErrors).length === 0;
 //   };
@@ -543,27 +559,39 @@
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 //     if (!validateForm()) return;
-
 //     setLoading(true);
 //     try {
+//       const submitData = new FormData();
+//       submitData.append("email", formData.email);
+//       submitData.append("firstName", formData.firstName);
+//       submitData.append("lastName", formData.lastName);
+//       submitData.append("roleId", formData.roleId);
+//       submitData.append("userType", formData.userType);
+//       if (formData.companyId) {
+//         submitData.append("companyId", formData.companyId);
+//       }
+//       if (formData.profileImage) {
+//         submitData.append("profileImage", formData.profileImage);
+//       }
+
 //       let response;
 //       if (isEdit) {
-//         // Use the existing updateUser endpoint for User Management
 //         response = await userService.updateUser(
 //           user.userId,
 //           user.userType,
-//           formData
+//           submitData
 //         );
 //       } else {
-//         response = await userService.createUser(formData);
+//         response = await userService.createUser(submitData);
+//         if (response.data.employeeCodeId) {
+//           setEmployeeCodeId(response.data.employeeCodeId);
+//         }
 //         if (response.data.generatedPassword) {
 //           setGeneratedPassword(response.data.generatedPassword);
 //         }
 //       }
-
 //       onSuccess();
 //       if (!isEdit) {
-//         // Show generated password for new users
 //         setShowPassword(true);
 //       } else {
 //         onClose();
@@ -613,13 +641,11 @@
 //             </button>
 //           </div>
 //         </div>
-
 //         <form onSubmit={handleSubmit} className="p-6 space-y-6">
 //           {/* User Type Selection */}
 //           <div className="space-y-2">
 //             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-//               <Shield className="w-4 h-4" />
-//               User Type *
+//               <Shield className="w-4 h-4" /> User Type *
 //             </label>
 //             <div className="grid grid-cols-2 gap-4">
 //               <button
@@ -666,8 +692,7 @@
 //           {/* Email */}
 //           <div className="space-y-2">
 //             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-//               <Mail className="w-4 h-4" />
-//               Email *
+//               <Mail className="w-4 h-4" /> Email *
 //             </label>
 //             <input
 //               type="email"
@@ -730,11 +755,43 @@
 //             </div>
 //           </div>
 
+//           {/* Profile Image Upload */}
+//           <div className="space-y-2">
+//             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+//               <Image className="w-4 h-4" /> Profile Image
+//             </label>
+//             <input
+//               type="file"
+//               accept="image/jpeg,image/png"
+//               onChange={(e) =>
+//                 setFormData((prev) => ({
+//                   ...prev,
+//                   profileImage: e.target.files[0],
+//                 }))
+//               }
+//               className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+//                 errors.profileImage ? "border-red-500" : "border-gray-200"
+//               }`}
+//             />
+//             {errors.profileImage && (
+//               <p className="text-sm text-red-500">{errors.profileImage}</p>
+//             )}
+//             {isEdit && user.profileImageUrl && (
+//               <div className="mt-2">
+//                 <p className="text-sm text-gray-600">Current Profile Image:</p>
+//                 <img
+//                   src={user.profileImageUrl}
+//                   alt="Current Profile"
+//                   className="w-20 h-20 object-cover rounded-full"
+//                 />
+//               </div>
+//             )}
+//           </div>
+
 //           {/* Role Selection */}
 //           <div className="space-y-2">
 //             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-//               <Shield className="w-4 h-4" />
-//               Role *
+//               <Shield className="w-4 h-4" /> Role *
 //             </label>
 //             <select
 //               value={formData.roleId}
@@ -761,8 +818,7 @@
 //           {formData.userType === "COMPANY" && (
 //             <div className="space-y-2">
 //               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-//                 <Building className="w-4 h-4" />
-//                 Company *
+//                 <Building className="w-4 h-4" /> Company *
 //               </label>
 //               <select
 //                 value={formData.companyId}
@@ -789,12 +845,29 @@
 //             </div>
 //           )}
 
+//           {/* Employee Code ID Display (for edit mode or after creation) */}
+//           {employeeCodeId && (
+//             <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+//               <label className="text-sm font-semibold text-blue-700 flex items-center gap-2">
+//                 <Shield className="w-4 h-4" /> Employee Code ID
+//               </label>
+//               <input
+//                 type="text"
+//                 value={employeeCodeId}
+//                 readOnly
+//                 className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl bg-white"
+//               />
+//               <p className="text-sm text-blue-600">
+//                 This is the unique employee code for the user.
+//               </p>
+//             </div>
+//           )}
+
 //           {/* Generated Password Display */}
 //           {generatedPassword && (
 //             <div className="space-y-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
 //               <label className="text-sm font-semibold text-green-700 flex items-center gap-2">
-//                 <Shield className="w-4 h-4" />
-//                 Generated Password
+//                 <Shield className="w-4 h-4" /> Generated Password
 //               </label>
 //               <div className="flex items-center gap-2">
 //                 <input
@@ -869,9 +942,11 @@ import {
   Save,
   Eye,
   EyeOff,
+  Image,
 } from "lucide-react";
 import { userService } from "../../services/userService";
 import { companyService } from "../../services/companyService";
+import toast from "react-hot-toast";
 
 const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -881,15 +956,15 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
     roleId: "",
     companyId: "",
     userType: "INTERNAL",
+    profileImage: null, // New field for profile image
   });
-
   const [roles, setRoles] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
-
+  const [employeeCodeId, setEmployeeCodeId] = useState(""); // New state for employeeCodeId
   const isEdit = !!user;
 
   useEffect(() => {
@@ -904,7 +979,9 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
           roleId: user.roleId || "",
           companyId: user.companyId || "",
           userType: user.userType || "INTERNAL",
+          profileImage: null, // Reset for edit
         });
+        setEmployeeCodeId(user.employeeCodeId || ""); // Set employeeCodeId for edit
       } else {
         resetForm();
       }
@@ -937,72 +1014,92 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
       roleId: "",
       companyId: "",
       userType: "INTERNAL",
+      profileImage: null,
     });
     setErrors({});
     setGeneratedPassword("");
+    setEmployeeCodeId("");
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
     }
-
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
-
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last name is required";
     }
-
     if (!formData.roleId) {
       newErrors.roleId = "Role is required";
     }
-
     if (formData.userType === "COMPANY" && !formData.companyId) {
       newErrors.companyId = "Company is required for company users";
     }
-
+    if (
+      formData.profileImage &&
+      !["image/jpeg", "image/png"].includes(formData.profileImage.type)
+    ) {
+      newErrors.profileImage = "Only JPEG or PNG images are allowed";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 1048576) {
+        // 1MB limit
+        toast.error("Image size must be less than 1MB");
+        e.target.value = ""; // Clear the input
+        setFormData((prev) => ({ ...prev, profileImage: null }));
+      } else {
+        setFormData((prev) => ({ ...prev, profileImage: file }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setLoading(true);
     try {
+      const submitData = new FormData();
+      submitData.append("email", formData.email);
+      submitData.append("firstName", formData.firstName);
+      submitData.append("lastName", formData.lastName);
+      submitData.append("roleId", formData.roleId);
+      submitData.append("userType", formData.userType);
+      if (formData.companyId) {
+        submitData.append("companyId", formData.companyId);
+      }
+      if (formData.profileImage) {
+        submitData.append("profileImage", formData.profileImage);
+      }
+
       let response;
       if (isEdit) {
-        // Use the correct endpoint: PUT /api/users/{id}/{userType}
-        const updateData = {
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          roleId: formData.roleId,
-          companyId: formData.companyId,
-          userType: formData.userType,
-        };
         response = await userService.updateUser(
           user.userId,
           user.userType,
-          updateData
+          submitData
         );
       } else {
-        response = await userService.createUser(formData);
+        response = await userService.createUser(submitData);
+        if (response.data.employeeCodeId) {
+          setEmployeeCodeId(response.data.employeeCodeId);
+        }
         if (response.data.generatedPassword) {
           setGeneratedPassword(response.data.generatedPassword);
         }
       }
-
       onSuccess();
       if (!isEdit) {
-        // Show generated password for new users
         setShowPassword(true);
       } else {
         onClose();
@@ -1052,13 +1149,11 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
             </button>
           </div>
         </div>
-
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* User Type Selection */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              User Type *
+              <Shield className="w-4 h-4" /> User Type *
             </label>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -1105,8 +1200,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
           {/* Email */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email *
+              <Mail className="w-4 h-4" /> Email *
             </label>
             <input
               type="email"
@@ -1169,11 +1263,38 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
             </div>
           </div>
 
+          {/* Profile Image Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Image className="w-4 h-4" /> Profile Image
+            </label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={handleImageChange}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.profileImage ? "border-red-500" : "border-gray-200"
+              }`}
+            />
+            {errors.profileImage && (
+              <p className="text-sm text-red-500">{errors.profileImage}</p>
+            )}
+            {isEdit && user.profileImageUrl && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600">Current Profile Image:</p>
+                <img
+                  src={user.profileImageUrl}
+                  alt="Current Profile"
+                  className="w-20 h-20 object-cover rounded-full"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Role Selection */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Role *
+              <Shield className="w-4 h-4" /> Role *
             </label>
             <select
               value={formData.roleId}
@@ -1200,8 +1321,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
           {formData.userType === "COMPANY" && (
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Building className="w-4 h-4" />
-                Company *
+                <Building className="w-4 h-4" /> Company *
               </label>
               <select
                 value={formData.companyId}
@@ -1228,12 +1348,29 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
             </div>
           )}
 
+          {/* Employee Code ID Display (for edit mode or after creation) */}
+          {employeeCodeId && (
+            <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+              <label className="text-sm font-semibold text-blue-700 flex items-center gap-2">
+                <Shield className="w-4 h-4" /> Employee Code ID
+              </label>
+              <input
+                type="text"
+                value={employeeCodeId}
+                readOnly
+                className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl bg-white"
+              />
+              <p className="text-sm text-blue-600">
+                This is the unique employee code for the user.
+              </p>
+            </div>
+          )}
+
           {/* Generated Password Display */}
           {generatedPassword && (
             <div className="space-y-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
               <label className="text-sm font-semibold text-green-700 flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Generated Password
+                <Shield className="w-4 h-4" /> Generated Password
               </label>
               <div className="flex items-center gap-2">
                 <input
