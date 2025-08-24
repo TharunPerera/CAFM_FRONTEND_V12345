@@ -1,5 +1,4 @@
 // "use client";
-
 // import { useState, useEffect } from "react";
 // import { useParams, Link, useNavigate } from "react-router-dom";
 // import {
@@ -92,8 +91,7 @@
 //     },
 //     { key: "floorName", label: "Floor Name", category: "Location" },
 //     { key: "roomName", label: "Room Name", category: "Location" },
-//     { key: "serviceName", label: "Service Name", category: "Service" },
-//     { key: "subServiceName", label: "Sub Service Name", category: "Service" },
+//     { key: "subServices", label: "Sub Services", category: "Service" },
 //     {
 //       key: "serviceScopeNames",
 //       label: "Service Scope Names",
@@ -273,7 +271,6 @@
 //     doc.setFontSize(20);
 //     doc.setTextColor(40, 116, 240);
 //     doc.text("Asset Report", 20, 20);
-
 //     doc.setFontSize(12);
 //     doc.setTextColor(100, 100, 100);
 //     doc.text(`Asset Tag: ${asset.assetTag}`, 20, 30);
@@ -306,7 +303,6 @@
 //         doc.addPage();
 //         yPosition = 20;
 //       }
-
 //       doc.setFontSize(14);
 //       doc.setTextColor(40, 116, 240);
 //       doc.text("Asset Images", 20, yPosition);
@@ -315,63 +311,49 @@
 //       try {
 //         for (let i = 0; i < Math.min(asset.imageUrls.length, 4); i++) {
 //           const imageUrl = asset.imageUrls[i];
-
-//           // Create a new image element to load the image
 //           const img = new Image();
 //           img.crossOrigin = "anonymous";
-
 //           await new Promise((resolve, reject) => {
 //             img.onload = () => {
 //               try {
-//                 // Create canvas to convert image
 //                 const canvas = document.createElement("canvas");
 //                 const ctx = canvas.getContext("2d");
 //                 canvas.width = img.width;
 //                 canvas.height = img.height;
 //                 ctx.drawImage(img, 0, 0);
-
 //                 const imgData = canvas.toDataURL("image/jpeg", 0.8);
 
-//                 // Calculate image dimensions for PDF
 //                 const maxWidth = 80;
 //                 const maxHeight = 60;
 //                 let imgWidth = maxWidth;
 //                 let imgHeight = (img.height * maxWidth) / img.width;
-
 //                 if (imgHeight > maxHeight) {
 //                   imgHeight = maxHeight;
 //                   imgWidth = (img.width * maxHeight) / img.height;
 //                 }
 
-//                 // Position images in a 2x2 grid
 //                 const col = i % 2;
 //                 const row = Math.floor(i / 2);
 //                 const x = 20 + col * 90;
 //                 const y = yPosition + row * 70;
 
 //                 doc.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
-
-//                 // Add image caption
 //                 doc.setFontSize(8);
 //                 doc.setTextColor(100, 100, 100);
 //                 doc.text(`Image ${i + 1}`, x, y + imgHeight + 5);
-
 //                 resolve();
 //               } catch (error) {
 //                 console.error("Error processing image:", error);
-//                 resolve(); // Continue even if one image fails
+//                 resolve();
 //               }
 //             };
-
 //             img.onerror = () => {
 //               console.error("Error loading image:", imageUrl);
-//               resolve(); // Continue even if image fails to load
+//               resolve();
 //             };
-
 //             img.src = imageUrl;
 //           });
 //         }
-
 //         yPosition +=
 //           Math.ceil(Math.min(asset.imageUrls.length, 4) / 2) * 70 + 20;
 //       } catch (error) {
@@ -381,31 +363,61 @@
 
 //     // Generate sections
 //     Object.keys(groupedFields).forEach((category) => {
-//       if (category === "Media") return; // Skip media category as it's handled separately
+//       if (category === "Media") return;
 
 //       if (yPosition > 250) {
 //         doc.addPage();
 //         yPosition = 20;
 //       }
 
-//       // Category header
 //       doc.setFontSize(14);
 //       doc.setTextColor(40, 116, 240);
 //       doc.text(`${category} Information`, 20, yPosition);
 //       yPosition += 10;
 
-//       // Category fields
+//       // const tableData = groupedFields[category].map((field) => {
+//       //   let value = asset[field.key];
+
+//       //   if (field.key.includes("Cost") || field.key.includes("Value")) {
+//       //     value =
+//       //       typeof value === "number"
+//       //         ? `$${value.toLocaleString()}`
+//       //         : value || "-";
+//       //   } else if (field.key === "subServices" && Array.isArray(value)) {
+//       //     value = value.map((sub) => sub.subServiceName).join(", ");
+//       //   } else if (field.key === "serviceScopeNames" && Array.isArray(value)) {
+//       //     // Handle the new multiple sub-services structure
+//       //     const allScopes = value.flatMap((sub) => sub.serviceScopeNames || []);
+//       //     value = allScopes.join(", ");
+//       //   } else if (field.key === "createdAt" && value) {
+//       //     value = new Date(value).toLocaleString();
+//       //   } else {
+//       //     value = value || "-";
+//       //   }
+
+//       //   return [field.label, value.toString()];
+//       // });
+
 //       const tableData = groupedFields[category].map((field) => {
 //         let value = asset[field.key];
 
-//         // Format specific fields
 //         if (field.key.includes("Cost") || field.key.includes("Value")) {
 //           value =
 //             typeof value === "number"
 //               ? `$${value.toLocaleString()}`
 //               : value || "-";
-//         } else if (field.key === "serviceScopeNames" && Array.isArray(value)) {
-//           value = value.join(", ");
+//         } else if (field.key === "subServices" && Array.isArray(value)) {
+//           value = value.map((sub) => sub.subServiceName).join(", ");
+//         } else if (field.key === "serviceScopeNames") {
+//           // Fixed: Extract service scope names from subServices array
+//           if (asset.subServices && Array.isArray(asset.subServices)) {
+//             const allScopes = asset.subServices.flatMap(
+//               (sub) => sub.serviceScopeNames || []
+//             );
+//             value = allScopes.length > 0 ? allScopes.join(", ") : "-";
+//           } else {
+//             value = "-";
+//           }
 //         } else if (field.key === "createdAt" && value) {
 //           value = new Date(value).toLocaleString();
 //         } else {
@@ -453,24 +465,62 @@
 //       doc.text("Generated by CAFM UAE System", 120, 285);
 //     }
 
-//     // Save the PDF
 //     doc.save(`asset-report-${asset.assetTag}.pdf`);
 //   };
 
 //   const generateWordReport = async () => {
-//     // Create HTML content for Word document
+//     // const selectedData = selectedFields.reduce((acc, fieldKey) => {
+//     //   const field = availableFields.find((f) => f.key === fieldKey);
+//     //   if (field) {
+//     //     let value = asset[fieldKey];
+//     //     if (fieldKey.includes("Cost") || fieldKey.includes("Value")) {
+//     //       value =
+//     //         typeof value === "number"
+//     //           ? `$${value.toLocaleString()}`
+//     //           : value || "-";
+//     //     } else if (fieldKey === "subServices" && Array.isArray(value)) {
+//     //       value = value.map((sub) => sub.subServiceName).join(", ");
+//     //     } else if (fieldKey === "serviceScopeNames" && Array.isArray(value)) {
+//     //       const allScopes = value.flatMap((sub) => sub.serviceScopeNames || []);
+//     //       value = allScopes.join(", ");
+//     //     } else if (fieldKey === "createdAt" && value) {
+//     //       value = new Date(value).toLocaleString();
+//     //     } else if (fieldKey === "imageUrls" && Array.isArray(value)) {
+//     //       value = `${value.length} image(s) attached`;
+//     //     } else {
+//     //       value = value || "-";
+//     //     }
+
+//     //     acc[field.category] = acc[field.category] || [];
+//     //     acc[field.category].push({
+//     //       label: field.label,
+//     //       value: value.toString(),
+//     //     });
+//     //   }
+//     //   return acc;
+//     // }, {});
+
 //     const selectedData = selectedFields.reduce((acc, fieldKey) => {
 //       const field = availableFields.find((f) => f.key === fieldKey);
 //       if (field) {
 //         let value = asset[fieldKey];
-
 //         if (fieldKey.includes("Cost") || fieldKey.includes("Value")) {
 //           value =
 //             typeof value === "number"
 //               ? `$${value.toLocaleString()}`
 //               : value || "-";
-//         } else if (fieldKey === "serviceScopeNames" && Array.isArray(value)) {
-//           value = value.join(", ");
+//         } else if (fieldKey === "subServices" && Array.isArray(value)) {
+//           value = value.map((sub) => sub.subServiceName).join(", ");
+//         } else if (fieldKey === "serviceScopeNames") {
+//           // Fixed: Extract service scope names from subServices array
+//           if (asset.subServices && Array.isArray(asset.subServices)) {
+//             const allScopes = asset.subServices.flatMap(
+//               (sub) => sub.serviceScopeNames || []
+//             );
+//             value = allScopes.length > 0 ? allScopes.join(", ") : "-";
+//           } else {
+//             value = "-";
+//           }
 //         } else if (fieldKey === "createdAt" && value) {
 //           value = new Date(value).toLocaleString();
 //         } else if (fieldKey === "imageUrls" && Array.isArray(value)) {
@@ -487,7 +537,6 @@
 //       }
 //       return acc;
 //     }, {});
-
 //     const htmlContent = `
 //       <!DOCTYPE html>
 //       <html>
@@ -508,10 +557,7 @@
 //             .footer { margin-top: 50px; text-align: center; color: #666; border-top: 1px solid #ddd; padding-top: 20px; font-size: 12px; }
 //             .images { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
 //             .images img { max-width: 200px; max-height: 150px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; }
-//             @media print {
-//               body { margin: 20px; }
-//               .section { page-break-inside: avoid; }
-//             }
+//             @media print { body { margin: 20px; } .section { page-break-inside: avoid; } }
 //           </style>
 //         </head>
 //         <body>
@@ -521,51 +567,48 @@
 //             <p><strong>Asset Name:</strong> ${asset.assetName}</p>
 //             <p><strong>Generated on:</strong> ${new Date().toLocaleDateString()}</p>
 //           </div>
-
 //           ${
 //             selectedFields.includes("imageUrls") &&
 //             asset.imageUrls &&
 //             asset.imageUrls.length > 0
 //               ? `
-//           <div class="section">
-//             <h2>Asset Images</h2>
-//             <div class="images">
-//               ${asset.imageUrls
-//                 .map(
-//                   (url, index) => `
-//                 <img src="${url}" alt="Asset Image ${index + 1}" />
+//                 <div class="section">
+//                   <h2>Asset Images</h2>
+//                   <div class="images">
+//                     ${asset.imageUrls
+//                       .map(
+//                         (url, index) => `
+//                         <img src="${url}" alt="Asset Image ${index + 1}" />
+//                       `
+//                       )
+//                       .join("")}
+//                   </div>
+//                 </div>
 //               `
-//                 )
-//                 .join("")}
-//             </div>
-//           </div>
-//           `
 //               : ""
 //           }
-
 //           ${Object.keys(selectedData)
 //             .filter((category) => category !== "Media")
 //             .map(
 //               (category) => `
-//             <div class="section">
-//               <h2>${category} Information</h2>
-//               <div class="field-grid">
-//                 ${selectedData[category]
-//                   .map(
-//                     (field) => `
-//                   <div class="field">
-//                     <div class="field-label">${field.label}</div>
-//                     <div class="field-value">${field.value}</div>
+//                 <div class="section">
+//                   <h2>${category} Information</h2>
+//                   <div class="field-grid">
+//                     ${selectedData[category]
+//                       .map(
+//                         (field) => `
+//                         <div class="field">
+//                           <div class="field-label">${field.label}</div>
+//                           <div class="field-value">${field.value}</div>
+//                         </div>
+//                       `
+//                       )
+//                       .join("")}
 //                   </div>
-//                 `
-//                   )
-//                   .join("")}
-//               </div>
-//             </div>
-//           `
+//                 </div>
+//               `
 //             )
 //             .join("")}
-
 //           <div class="footer">
 //             <p><strong>This report was generated by CAFM UAE System</strong></p>
 //             <p>Report contains ${
@@ -578,7 +621,6 @@
 //       </html>
 //     `;
 
-//     // Create and download Word document
 //     const blob = new Blob([htmlContent], {
 //       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 //     });
@@ -817,7 +859,6 @@
 //                     {formatCurrency(asset.purchaseCost)}
 //                   </p>
 //                 </div>
-
 //                 <div className="grid grid-cols-1 gap-4">
 //                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
 //                     <span className="text-sm text-gray-600">
@@ -846,7 +887,6 @@
 //                     </span>
 //                   </div>
 //                 </div>
-
 //                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
 //                   <div className="flex items-center mb-2">
 //                     <TrendingDown className="w-5 h-5 mr-2 text-blue-600" />
@@ -900,7 +940,6 @@
 //                     {asset.warrantyExpiryDate || "-"}
 //                   </span>
 //                 </div>
-
 //                 {asset.remainingWarrantyPeriodDays !== null &&
 //                   asset.remainingWarrantyPeriodDays <= 30 && (
 //                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-lg">
@@ -977,7 +1016,6 @@
 //                     </div>
 //                   </div>
 //                 </div>
-
 //                 <div className="space-y-6">
 //                   <div className="flex items-start">
 //                     <Box className="w-5 h-5 mr-3 text-gray-500 mt-1" />
@@ -1170,7 +1208,7 @@
 //               </div>
 //             </div>
 
-//             {/* Service Information */}
+//             {/* Service Information - Updated for Multiple Sub-Services */}
 //             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 //               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
 //                 <div className="p-2 bg-purple-100 rounded-lg mr-3">
@@ -1178,54 +1216,62 @@
 //                 </div>
 //                 Service Information
 //               </h2>
-//               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//                 <div className="flex items-start">
-//                   <Wrench className="w-5 h-5 mr-3 text-gray-500 mt-1" />
-//                   <div>
-//                     <p className="text-sm font-semibold text-gray-700">
-//                       Service
-//                     </p>
-//                     <p className="text-lg font-medium text-gray-900">
-//                       {asset.serviceName}
-//                     </p>
-//                   </div>
-//                 </div>
-//                 <div className="flex items-start">
-//                   <Wrench className="w-5 h-5 mr-3 text-gray-500 mt-1" />
-//                   <div>
-//                     <p className="text-sm font-semibold text-gray-700">
-//                       Sub Service
-//                     </p>
-//                     <p className="text-lg font-medium text-gray-900">
-//                       {asset.subServiceName}
-//                     </p>
-//                   </div>
-//                 </div>
-//                 <div className="flex items-start">
-//                   <Wrench className="w-5 h-5 mr-3 text-gray-500 mt-1" />
-//                   <div>
-//                     <p className="text-sm font-semibold text-gray-700">
-//                       Service Scopes
-//                     </p>
-//                     <div className="mt-1">
-//                       {asset.serviceScopeNames &&
-//                       asset.serviceScopeNames.length > 0 ? (
-//                         <div className="flex flex-wrap gap-2">
-//                           {asset.serviceScopeNames.map((scope, index) => (
-//                             <span
-//                               key={index}
-//                               className="inline-flex px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
-//                             >
-//                               {scope}
-//                             </span>
-//                           ))}
+//               <div className="space-y-6">
+//                 {asset.subServices && asset.subServices.length > 0 ? (
+//                   asset.subServices.map((subService, index) => (
+//                     <div
+//                       key={index}
+//                       className="border border-gray-200 rounded-xl p-6 bg-gray-50"
+//                     >
+//                       <div className="flex items-start mb-4">
+//                         <Wrench className="w-5 h-5 mr-3 text-gray-500 mt-1" />
+//                         <div className="flex-1">
+//                           <p className="text-sm font-semibold text-gray-700">
+//                             Sub-Service {index + 1}
+//                           </p>
+//                           <p className="text-lg font-medium text-gray-900 mb-3">
+//                             {subService.subServiceName}
+//                           </p>
+
+//                           <div>
+//                             <p className="text-sm font-semibold text-gray-700 mb-2">
+//                               Service Scopes:
+//                             </p>
+//                             {subService.serviceScopeNames &&
+//                             subService.serviceScopeNames.length > 0 ? (
+//                               <div className="flex flex-wrap gap-2">
+//                                 {subService.serviceScopeNames.map(
+//                                   (scopeName, scopeIndex) => (
+//                                     <span
+//                                       key={scopeIndex}
+//                                       className="inline-flex px-3 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+//                                     >
+//                                       {scopeName}
+//                                     </span>
+//                                   )
+//                                 )}
+//                               </div>
+//                             ) : (
+//                               <p className="text-gray-500 text-sm">
+//                                 No service scopes assigned
+//                               </p>
+//                             )}
+//                           </div>
 //                         </div>
-//                       ) : (
-//                         <p className="text-gray-500">-</p>
-//                       )}
+//                       </div>
 //                     </div>
+//                   ))
+//                 ) : (
+//                   <div className="text-center py-8 text-gray-500">
+//                     <Wrench className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+//                     <p className="text-lg font-medium">
+//                       No sub-services assigned
+//                     </p>
+//                     <p className="text-sm">
+//                       This asset has no sub-services configured
+//                     </p>
 //                   </div>
-//                 </div>
+//                 )}
 //               </div>
 //             </div>
 
@@ -1397,7 +1443,6 @@
 //                   ×
 //                 </button>
 //               </div>
-
 //               <div className="mb-6">
 //                 <p className="text-gray-600 mb-4">
 //                   Select the fields you want to include in your asset report:
@@ -1417,7 +1462,6 @@
 //                   </button>
 //                 </div>
 //               </div>
-
 //               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 //                 {Object.keys(groupedFields).map((category) => (
 //                   <div key={category} className="bg-gray-50 p-4 rounded-xl">
@@ -1445,7 +1489,6 @@
 //                   </div>
 //                 ))}
 //               </div>
-
 //               <div className="flex justify-between items-center">
 //                 <p className="text-sm text-gray-600">
 //                   {selectedFields.length} field
@@ -1568,6 +1611,7 @@ const AssetDetail = () => {
     { key: "assetCondition", label: "Asset Condition", category: "Basic" },
     { key: "observation", label: "Observation", category: "Basic" },
     { key: "recommendation", label: "Recommendation", category: "Basic" },
+    { key: "categoryName", label: "Asset Category", category: "Basic" },
     { key: "purchaseCost", label: "Purchase Cost", category: "Financial" },
     {
       key: "depreciationValue",
@@ -1777,6 +1821,7 @@ const AssetDetail = () => {
     doc.setFontSize(20);
     doc.setTextColor(40, 116, 240);
     doc.text("Asset Report", 20, 20);
+
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
     doc.text(`Asset Tag: ${asset.assetTag}`, 20, 30);
@@ -1809,6 +1854,7 @@ const AssetDetail = () => {
         doc.addPage();
         yPosition = 20;
       }
+
       doc.setFontSize(14);
       doc.setTextColor(40, 116, 240);
       doc.text("Asset Images", 20, yPosition);
@@ -1819,6 +1865,7 @@ const AssetDetail = () => {
           const imageUrl = asset.imageUrls[i];
           const img = new Image();
           img.crossOrigin = "anonymous";
+
           await new Promise((resolve, reject) => {
             img.onload = () => {
               try {
@@ -1833,6 +1880,7 @@ const AssetDetail = () => {
                 const maxHeight = 60;
                 let imgWidth = maxWidth;
                 let imgHeight = (img.height * maxWidth) / img.width;
+
                 if (imgHeight > maxHeight) {
                   imgHeight = maxHeight;
                   imgWidth = (img.width * maxHeight) / img.height;
@@ -1860,6 +1908,7 @@ const AssetDetail = () => {
             img.src = imageUrl;
           });
         }
+
         yPosition +=
           Math.ceil(Math.min(asset.imageUrls.length, 4) / 2) * 70 + 20;
       } catch (error) {
@@ -1881,32 +1930,8 @@ const AssetDetail = () => {
       doc.text(`${category} Information`, 20, yPosition);
       yPosition += 10;
 
-      // const tableData = groupedFields[category].map((field) => {
-      //   let value = asset[field.key];
-
-      //   if (field.key.includes("Cost") || field.key.includes("Value")) {
-      //     value =
-      //       typeof value === "number"
-      //         ? `$${value.toLocaleString()}`
-      //         : value || "-";
-      //   } else if (field.key === "subServices" && Array.isArray(value)) {
-      //     value = value.map((sub) => sub.subServiceName).join(", ");
-      //   } else if (field.key === "serviceScopeNames" && Array.isArray(value)) {
-      //     // Handle the new multiple sub-services structure
-      //     const allScopes = value.flatMap((sub) => sub.serviceScopeNames || []);
-      //     value = allScopes.join(", ");
-      //   } else if (field.key === "createdAt" && value) {
-      //     value = new Date(value).toLocaleString();
-      //   } else {
-      //     value = value || "-";
-      //   }
-
-      //   return [field.label, value.toString()];
-      // });
-
       const tableData = groupedFields[category].map((field) => {
         let value = asset[field.key];
-
         if (field.key.includes("Cost") || field.key.includes("Value")) {
           value =
             typeof value === "number"
@@ -1929,7 +1954,6 @@ const AssetDetail = () => {
         } else {
           value = value || "-";
         }
-
         return [field.label, value.toString()];
       });
 
@@ -1975,37 +1999,6 @@ const AssetDetail = () => {
   };
 
   const generateWordReport = async () => {
-    // const selectedData = selectedFields.reduce((acc, fieldKey) => {
-    //   const field = availableFields.find((f) => f.key === fieldKey);
-    //   if (field) {
-    //     let value = asset[fieldKey];
-    //     if (fieldKey.includes("Cost") || fieldKey.includes("Value")) {
-    //       value =
-    //         typeof value === "number"
-    //           ? `$${value.toLocaleString()}`
-    //           : value || "-";
-    //     } else if (fieldKey === "subServices" && Array.isArray(value)) {
-    //       value = value.map((sub) => sub.subServiceName).join(", ");
-    //     } else if (fieldKey === "serviceScopeNames" && Array.isArray(value)) {
-    //       const allScopes = value.flatMap((sub) => sub.serviceScopeNames || []);
-    //       value = allScopes.join(", ");
-    //     } else if (fieldKey === "createdAt" && value) {
-    //       value = new Date(value).toLocaleString();
-    //     } else if (fieldKey === "imageUrls" && Array.isArray(value)) {
-    //       value = `${value.length} image(s) attached`;
-    //     } else {
-    //       value = value || "-";
-    //     }
-
-    //     acc[field.category] = acc[field.category] || [];
-    //     acc[field.category].push({
-    //       label: field.label,
-    //       value: value.toString(),
-    //     });
-    //   }
-    //   return acc;
-    // }, {});
-
     const selectedData = selectedFields.reduce((acc, fieldKey) => {
       const field = availableFields.find((f) => f.key === fieldKey);
       if (field) {
@@ -2043,6 +2036,7 @@ const AssetDetail = () => {
       }
       return acc;
     }, {});
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -2078,41 +2072,41 @@ const AssetDetail = () => {
             asset.imageUrls &&
             asset.imageUrls.length > 0
               ? `
-                <div class="section">
-                  <h2>Asset Images</h2>
-                  <div class="images">
-                    ${asset.imageUrls
-                      .map(
-                        (url, index) => `
-                        <img src="${url}" alt="Asset Image ${index + 1}" />
-                      `
-                      )
-                      .join("")}
-                  </div>
-                </div>
-              `
+            <div class="section">
+              <h2>Asset Images</h2>
+              <div class="images">
+                ${asset.imageUrls
+                  .map(
+                    (url, index) => `
+                  <img src="${url}" alt="Asset Image ${index + 1}" />
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `
               : ""
           }
           ${Object.keys(selectedData)
             .filter((category) => category !== "Media")
             .map(
               (category) => `
-                <div class="section">
-                  <h2>${category} Information</h2>
-                  <div class="field-grid">
-                    ${selectedData[category]
-                      .map(
-                        (field) => `
-                        <div class="field">
-                          <div class="field-label">${field.label}</div>
-                          <div class="field-value">${field.value}</div>
-                        </div>
-                      `
-                      )
-                      .join("")}
+            <div class="section">
+              <h2>${category} Information</h2>
+              <div class="field-grid">
+                ${selectedData[category]
+                  .map(
+                    (field) => `
+                  <div class="field">
+                    <div class="field-label">${field.label}</div>
+                    <div class="field-value">${field.value}</div>
                   </div>
-                </div>
-              `
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `
             )
             .join("")}
           <div class="footer">
@@ -2500,6 +2494,17 @@ const AssetDetail = () => {
                     </div>
                   </div>
                   <div className="flex items-start">
+                    <Tag className="w-5 h-5 mr-3 text-gray-500 mt-1" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">
+                        Asset Category
+                      </p>
+                      <p className="text-lg font-medium text-gray-900">
+                        {asset.categoryName || "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
                     <Barcode className="w-5 h-5 mr-3 text-gray-500 mt-1" />
                     <div>
                       <p className="text-sm font-semibold text-gray-700">
@@ -2609,7 +2614,6 @@ const AssetDetail = () => {
                   </div>
                 </div>
               </div>
-
               {(asset.observation || asset.recommendation) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 pt-8 border-t border-gray-200">
                   {asset.observation && (
@@ -2738,7 +2742,6 @@ const AssetDetail = () => {
                           <p className="text-lg font-medium text-gray-900 mb-3">
                             {subService.subServiceName}
                           </p>
-
                           <div>
                             <p className="text-sm font-semibold text-gray-700 mb-2">
                               Service Scopes:
@@ -2997,7 +3000,7 @@ const AssetDetail = () => {
               </div>
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-600">
-                  {selectedFields.length} field
+                  {selectedFields.length} field{" "}
                   {selectedFields.length !== 1 ? "s" : ""} selected
                 </p>
                 <div className="flex gap-3">
