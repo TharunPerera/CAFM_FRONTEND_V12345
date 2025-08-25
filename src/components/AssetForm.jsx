@@ -2351,17 +2351,6 @@ const AssetForm = ({ isEdit = false }) => {
     setShowCategoryDropdown(true);
   };
 
-  // const handleCategorySelect = (category) => {
-  //   setAsset((prev) => ({
-  //     ...prev,
-  //     categoryId: category.categoryId.toString(),
-  //   }));
-  //   setCategorySearchTerm(category.categoryName);
-  //   setShowCategoryDropdown(false);
-  //   if (errors.categoryId) {
-  //     setErrors((prev) => ({ ...prev, categoryId: null }));
-  //   }
-  // };
   const handleCategorySelect = (category) => {
     setAsset((prev) => ({
       ...prev,
@@ -2369,18 +2358,9 @@ const AssetForm = ({ isEdit = false }) => {
     }));
     setCategorySearchTerm(category.categoryName);
     setShowCategoryDropdown(false);
-
-    // Clear error if it exists
     if (errors.categoryId) {
       setErrors((prev) => ({ ...prev, categoryId: null }));
     }
-  };
-
-  // Add this function to handle when user clears the search
-  const handleCategoryClear = () => {
-    setAsset((prev) => ({ ...prev, categoryId: "" }));
-    setCategorySearchTerm("");
-    setShowCategoryDropdown(false);
   };
 
   const getSelectedCategoryName = () => {
@@ -3378,7 +3358,7 @@ const AssetForm = ({ isEdit = false }) => {
                     />
                   </div>
 
-                  <div className="space-y-2 relative">
+                  {/* <div className="space-y-2 relative">
                     <label
                       htmlFor="categorySearch"
                       className="block text-sm font-semibold text-gray-700 flex items-center"
@@ -3428,6 +3408,81 @@ const AssetForm = ({ isEdit = false }) => {
                           )}
                         </div>
                       )}
+                    </div>
+                    {errors.categoryId && (
+                      <p className="text-red-500 text-sm">
+                        {errors.categoryId}
+                      </p>
+                    )}
+                  </div> */}
+
+                  <div className="space-y-2 relative">
+                    <label
+                      htmlFor="categorySearch"
+                      className="block text-sm font-semibold text-gray-700 flex items-center"
+                    >
+                      <Tag className="w-4 h-4 mr-1 text-gray-500" />
+                      Asset Category *
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        id="categorySearch"
+                        type="text"
+                        value={categorySearchTerm || getSelectedCategoryName()}
+                        onChange={(e) => {
+                          setCategorySearchTerm(e.target.value);
+                          setShowCategoryDropdown(
+                            e.target.value.trim().length > 0
+                          ); // Show dropdown only if search term is not empty
+                        }}
+                        onFocus={() => {
+                          if (categorySearchTerm.trim().length > 0) {
+                            setShowCategoryDropdown(true); // Show dropdown on focus only if there's a search term
+                          }
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => setShowCategoryDropdown(false), 200); // Delay hiding to allow click
+                        }}
+                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                          errors.categoryId
+                            ? "border-red-500 bg-red-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        placeholder="Search asset category..."
+                      />
+                      {showCategoryDropdown &&
+                        filteredCategories.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredCategories.map((category) => (
+                              <button
+                                key={category.categoryId}
+                                type="button"
+                                onClick={() => {
+                                  handleCategorySelect(category);
+                                  setCategorySearchTerm(""); // Clear search term after selection
+                                }}
+                                className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                              >
+                                <div className="font-medium text-gray-900">
+                                  {category.categoryName}
+                                </div>
+                                {category.description && (
+                                  <div className="text-sm text-gray-500 truncate">
+                                    {category.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      {showCategoryDropdown &&
+                        categorySearchTerm.trim().length > 0 &&
+                        filteredCategories.length === 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-gray-500 text-center">
+                            No categories found
+                          </div>
+                        )}
                     </div>
                     {errors.categoryId && (
                       <p className="text-red-500 text-sm">
