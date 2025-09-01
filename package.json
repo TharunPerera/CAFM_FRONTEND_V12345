@@ -12,11 +12,13 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@react-google-maps/api": "^2.20.6",
+    "@stomp/stompjs": "^7.1.1",
     "axios": "^1.9.0",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.4.9",
     "d3": "^7.8.5",
     "dagre": "^0.8.5",
+    "globalthis": "^1.0.4",
     "gojs": "^3.0.22",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
@@ -40,6 +42,7 @@
     "react-select": "^5.10.1",
     "react-toastify": "^11.0.5",
     "react-tooltip": "^5.29.1",
+    "sockjs-client": "^1.6.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
