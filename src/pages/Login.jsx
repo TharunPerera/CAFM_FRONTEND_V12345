@@ -12,9 +12,9 @@ const Login = () => {
         <div className="particle particle-4"></div>
       </div>
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 z-10">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-6">
+        {/* <h1 className="text-4xl font-bold text-center text-gray-800 mb-6">
           CAFM System
-        </h1>
+        </h1> */}
         <LoginForm />
       </div>
     </div>

@@ -1,7 +1,9 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { X, Calendar, User, FileText } from "lucide-react";
 import { checklistService } from "../../services/checklistService";
+import { toast } from "react-toastify";
 
 const ChecklistViewModal = ({ checklistId, onClose }) => {
   const [checklist, setChecklist] = useState(null);
@@ -22,6 +24,7 @@ const ChecklistViewModal = ({ checklistId, onClose }) => {
     } catch (error) {
       console.error("Error fetching checklist details:", error);
       setError("Failed to load checklist details");
+      toast.error("Failed to load checklist details");
     } finally {
       setLoading(false);
     }
@@ -29,8 +32,22 @@ const ChecklistViewModal = ({ checklistId, onClose }) => {
 
   const parseContent = (content) => {
     try {
-      return typeof content === "string" ? JSON.parse(content) : content || [];
-    } catch {
+      const tasks =
+        typeof content === "string" ? JSON.parse(content) : content || [];
+      return Array.isArray(tasks)
+        ? tasks
+            .map((item, index) => ({
+              id: item.taskId || index + 1, // Use taskId if available, else index-based
+              text:
+                typeof item === "string"
+                  ? item
+                  : item.description || item.task || "", // Support description or task
+            }))
+            .filter((task) => task.text)
+        : [];
+    } catch (error) {
+      console.error("Error parsing checklist content:", error);
+      toast.error("Invalid checklist content");
       return [];
     }
   };
@@ -92,6 +109,14 @@ const ChecklistViewModal = ({ checklistId, onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Checklist ID
+                </label>
+                <p className="text-gray-900 font-medium">
+                  {checklist?.checklistId}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Name
                 </label>
                 <p className="text-gray-900 font-medium">{checklist?.name}</p>
@@ -101,7 +126,7 @@ const ChecklistViewModal = ({ checklistId, onClose }) => {
                   Service Scope
                 </label>
                 <p className="text-gray-900 font-medium">
-                  {checklist?.serviceScopeName}
+                  {checklist?.serviceScopeName || "N/A"}
                 </p>
               </div>
             </div>
@@ -171,16 +196,18 @@ const ChecklistViewModal = ({ checklistId, onClose }) => {
             </h3>
             {tasks.length > 0 ? (
               <div className="space-y-3">
-                {tasks.map((task, index) => (
+                {tasks.map((task) => (
                   <div
-                    key={index}
+                    key={task.id}
                     className="flex items-start gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                   >
                     <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
-                      {index + 1}
+                      {task.id}
                     </div>
                     <div className="flex-1">
-                      <p className="text-gray-900">{task.task}</p>
+                      <p className="text-gray-900">
+                        {task.text || "Untitled task"}
+                      </p>
                     </div>
                   </div>
                 ))}
