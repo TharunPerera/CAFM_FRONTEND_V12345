@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Save, X, Package } from "lucide-react";
-import { sparePartsService } from "../../services/SparePartsService";
+import { sparePartsService } from "../../services/sparePartsService";
 import { toast } from "react-toastify";
 
 const SparePartsRequestForm = ({ onClose, onSuccess }) => {
