@@ -120,4 +120,15 @@ export const serviceManagementService = {
     api.delete(`/service-management/service-scopes/${id}`),
   deleteServiceScopesBulk: (ids) =>
     api.delete("/service-management/service-scopes/bulk", { data: { ids } }),
+  // New method to get sub-services by multiple service IDs
+  getSubServicesByServiceIds: (serviceIds) =>
+    api.post("/service-management/sub-services/by-service-ids", {
+      ids: serviceIds,
+    }),
+
+  // New method to get service scopes by multiple sub-service IDs
+  getServiceScopesBySubServiceIds: (subServiceIds) =>
+    api.post("/service-management/service-scopes/by-sub-service-ids", {
+      ids: subServiceIds,
+    }),
 };

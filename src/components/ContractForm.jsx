@@ -9,3180 +9,6 @@
 //   PlusIcon,
 //   TrashIcon,
 //   InformationCircleIcon,
-// } from "@heroicons/react/24/outline";
-
-// const ContractForm = ({ onSubmit }) => {
-//   const updateTimeoutRef = useRef(null);
-
-//   const [formData, setFormData] = useState({
-//     contractName: "",
-//     companyId: "",
-//     projectLocation: "",
-//     projectType: "",
-//     startDate: "",
-//     endDate: "",
-//     services: [
-//       {
-//         serviceId: "",
-//         subServices: [
-//           {
-//             subServiceId: "",
-//             serviceScopes: [
-//               {
-//                 scopeId: "",
-//                 slaTypeId: "",
-//                 priorityId: "",
-//               },
-//             ],
-//           },
-//         ],
-//       },
-//     ],
-//     employeeTimings: [
-//       {
-//         dayOfWeek: "MONDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "TUESDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "WEDNESDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "THURSDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "FRIDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "SATURDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//       {
-//         dayOfWeek: "SUNDAY",
-//         dutyStartTime: "09:00",
-//         dutyEndTime: "17:00",
-//         offDutyStartTime: "17:00",
-//         offDutyEndTime: "09:00",
-//       },
-//     ],
-//     slaRules: [],
-//   });
-
-//   const [companies, setCompanies] = useState([]);
-//   const [services, setServices] = useState([]);
-//   const [subServices, setSubServices] = useState({});
-//   const [serviceScopes, setServiceScopes] = useState({});
-//   const [slaTypes, setSlaTypes] = useState([]);
-//   const [priorityLevels, setPriorityLevels] = useState({});
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [validationErrors, setValidationErrors] = useState({});
-//   const [collapsedSections, setCollapsedSections] = useState({});
-//   const [activeTab, setActiveTab] = useState("basic");
-
-//   // Generate SLA rules from service scopes
-//   const generateSlaRulesFromScopes = useCallback(() => {
-//     const rules = [];
-//     let ruleCounter = 0;
-
-//     formData.services.forEach((service, serviceIndex) => {
-//       service.subServices.forEach((subService, subServiceIndex) => {
-//         subService.serviceScopes.forEach((scope, scopeIndex) => {
-//           if (scope.scopeId && scope.slaTypeId && scope.priorityId) {
-//             // Find scope name
-//             const scopeData = serviceScopes[subService.subServiceId]?.find(
-//               (s) => s.scopeId.toString() === scope.scopeId
-//             );
-
-//             // Create unique key using service, subservice, and scope indices to ensure uniqueness
-//             const uniqueKey = `${serviceIndex}-${subServiceIndex}-${scopeIndex}-${scope.slaTypeId}-${scope.priorityId}-${scope.scopeId}`;
-
-//             rules.push({
-//               slaTypeId: scope.slaTypeId,
-//               priorityId: scope.priorityId,
-//               responseTimeHours: "",
-//               resolutionTimeHours: "",
-//               scopeName: scopeData?.scopeName || `Scope ${scope.scopeId}`,
-//               isFromServiceScope: true,
-//               uniqueKey: uniqueKey,
-//               ruleId: ruleCounter++,
-//             });
-//           }
-//         });
-//       });
-//     });
-
-//     console.log("Generated SLA rules:", rules);
-//     return rules;
-//   }, [formData.services, serviceScopes]);
-
-//   // Update SLA rules when service scopes change - Fixed with immediate update
-//   const updateSlaRules = useCallback(() => {
-//     const newGeneratedRules = generateSlaRulesFromScopes();
-
-//     setFormData((prev) => {
-//       // Get current manual rules (preserve user input)
-//       const currentManualRules = prev.slaRules.filter(
-//         (rule) => !rule.isFromServiceScope
-//       );
-
-//       // Create a map of existing auto rules by their unique key to preserve user input
-//       const existingAutoRulesMap = new Map();
-//       prev.slaRules
-//         .filter((rule) => rule.isFromServiceScope)
-//         .forEach((rule) => {
-//           existingAutoRulesMap.set(rule.uniqueKey, rule);
-//         });
-
-//       // Merge new generated rules with existing ones, preserving user input
-//       const updatedAutoRules = newGeneratedRules.map((newRule) => {
-//         // Find existing rule with same unique key to preserve user input
-//         const existingRule = existingAutoRulesMap.get(newRule.uniqueKey);
-
-//         return {
-//           ...newRule,
-//           responseTimeHours: existingRule?.responseTimeHours || "",
-//           resolutionTimeHours: existingRule?.resolutionTimeHours || "",
-//         };
-//       });
-
-//       // Combine manual and auto rules
-//       const allRules = [...currentManualRules, ...updatedAutoRules];
-
-//       console.log(
-//         "Previous auto rules count:",
-//         prev.slaRules.filter((r) => r.isFromServiceScope).length
-//       );
-//       console.log("New auto rules count:", updatedAutoRules.length);
-//       console.log("All rules count:", allRules.length);
-
-//       return {
-//         ...prev,
-//         slaRules: allRules,
-//       };
-//     });
-//   }, [generateSlaRulesFromScopes]);
-
-//   // Effect to update SLA rules when services or scopes change - Immediate update without debounce
-//   useEffect(() => {
-//     // Only update if we have some service scopes configured
-//     const hasConfiguredScopes = formData.services.some((service) =>
-//       service.subServices.some((subService) =>
-//         subService.serviceScopes.some(
-//           (scope) => scope.scopeId && scope.slaTypeId && scope.priorityId
-//         )
-//       )
-//     );
-
-//     console.log("Has configured scopes:", hasConfiguredScopes);
-
-//     if (hasConfiguredScopes) {
-//       updateSlaRules();
-//     } else {
-//       // Clear auto-generated rules if no scopes are configured
-//       setFormData((prev) => ({
-//         ...prev,
-//         slaRules: prev.slaRules.filter((rule) => !rule.isFromServiceScope),
-//       }));
-//     }
-//   }, [formData.services, serviceScopes, updateSlaRules]);
-
-//   // Effect to trigger SLA rules update when switching to SLA tab
-//   useEffect(() => {
-//     if (activeTab === "sla") {
-//       // Force update SLA rules when switching to SLA tab
-//       updateSlaRules();
-//     }
-//   }, [activeTab, updateSlaRules]);
-
-//   useEffect(() => {
-//     const fetchInitialData = async () => {
-//       try {
-//         setLoading(true);
-//         setError(null);
-
-//         const [companiesRes, servicesRes, slaTypesRes] = await Promise.all([
-//           companyService.getAllCompanies(),
-//           contractService.getServices(),
-//           contractService.getSlaTypes(),
-//         ]);
-
-//         const companiesData = Array.isArray(companiesRes.data)
-//           ? companiesRes.data
-//           : [];
-//         const servicesData = Array.isArray(servicesRes.data)
-//           ? servicesRes.data
-//           : [];
-//         const slaTypesData = Array.isArray(slaTypesRes.data)
-//           ? slaTypesRes.data
-//           : [];
-
-//         setCompanies(companiesData);
-//         setServices(servicesData);
-//         setSlaTypes(slaTypesData);
-//       } catch (err) {
-//         console.error("Error fetching initial data:", err);
-//         setError("Failed to load form data. Please try again.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchInitialData();
-//   }, []);
-
-//   const validateField = (
-//     name,
-//     value,
-//     serviceIndex,
-//     subServiceIndex,
-//     scopeIndex,
-//     timingIndex,
-//     ruleIndex
-//   ) => {
-//     const errors = {};
-//     if (name === "contractName" && !value)
-//       errors.contractName = "Contract name is required.";
-//     if (name === "companyId" && !value)
-//       errors.companyId = "Company is required.";
-//     if (name === "projectType" && !value)
-//       errors.projectType = "Project type is required.";
-//     if (name === "startDate" && !value)
-//       errors.startDate = "Start date is required.";
-//     if (name === "endDate" && !value) errors.endDate = "End date is required.";
-//     if (name === "serviceId" && !value)
-//       errors[`service-${serviceIndex}`] = "Service is required.";
-//     if (name === "subServiceId" && !value)
-//       errors[`subService-${serviceIndex}-${subServiceIndex}`] =
-//         "Sub-service is required.";
-//     if (name === "scopeId" && !value)
-//       errors[`scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//         "Scope is required.";
-//     if (name === "slaTypeId" && !value)
-//       errors[`slaType-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//         "SLA type is required.";
-//     if (name === "priorityId" && !value)
-//       errors[`priority-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//         "Priority level is required.";
-//     if (name === "dutyStartTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`dutyStartTime-${timingIndex}`] = "Valid time (HH:MM) required.";
-//     if (name === "dutyEndTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`dutyEndTime-${timingIndex}`] = "Valid time (HH:MM) required.";
-//     if (name === "offDutyStartTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`offDutyStartTime-${timingIndex}`] =
-//         "Valid time (HH:MM) required.";
-//     if (name === "offDutyEndTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`offDutyEndTime-${timingIndex}`] = "Valid time (HH:MM) required.";
-//     if (name === "slaRuleSlaTypeId" && !value)
-//       errors[`slaRuleSlaType-${ruleIndex}`] = "SLA type is required.";
-//     if (name === "slaRulePriorityId" && !value)
-//       errors[`slaRulePriority-${ruleIndex}`] = "Priority level is required.";
-//     if (name === "responseTimeHours" && (value === "" || value < 0))
-//       errors[`responseTimeHours-${ruleIndex}`] =
-//         "Valid response time required.";
-//     if (name === "resolutionTimeHours" && (value === "" || value < 0))
-//       errors[`resolutionTimeHours-${ruleIndex}`] =
-//         "Valid resolution time required.";
-//     return errors;
-//   };
-
-//   const handleChange = (
-//     e,
-//     serviceIndex,
-//     subServiceIndex,
-//     scopeIndex,
-//     timingIndex,
-//     ruleIndex
-//   ) => {
-//     const { name, value } = e.target;
-
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-
-//       // Update nested formData based on indices
-//       if (
-//         serviceIndex !== undefined &&
-//         subServiceIndex !== undefined &&
-//         scopeIndex !== undefined
-//       ) {
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes[scopeIndex][name] = value;
-//         if (name === "scopeId") {
-//           newFormData.services[serviceIndex].subServices[
-//             subServiceIndex
-//           ].serviceScopes[scopeIndex].slaTypeId = "";
-//           newFormData.services[serviceIndex].subServices[
-//             subServiceIndex
-//           ].serviceScopes[scopeIndex].priorityId = "";
-//         }
-//       } else if (serviceIndex !== undefined && subServiceIndex !== undefined) {
-//         newFormData.services[serviceIndex].subServices[subServiceIndex][name] =
-//           value;
-//         if (name === "subServiceId") {
-//           newFormData.services[serviceIndex].subServices[
-//             subServiceIndex
-//           ].serviceScopes = [{ scopeId: "", slaTypeId: "", priorityId: "" }];
-//           if (value) {
-//             contractService
-//               .getServiceScopes(value)
-//               .then((res) => {
-//                 setServiceScopes((prev) => ({
-//                   ...prev,
-//                   [value]: Array.isArray(res.data) ? res.data : [],
-//                 }));
-//               })
-//               .catch((err) => {
-//                 console.error("Failed to load service scopes:", err);
-//                 setError("Failed to load service scopes.");
-//               });
-//           }
-//         }
-//       } else if (serviceIndex !== undefined) {
-//         newFormData.services[serviceIndex][name] = value;
-//         if (name === "serviceId") {
-//           newFormData.services[serviceIndex].subServices = [
-//             {
-//               subServiceId: "",
-//               serviceScopes: [{ scopeId: "", slaTypeId: "", priorityId: "" }],
-//             },
-//           ];
-//           if (value) {
-//             contractService
-//               .getSubServices(value)
-//               .then((res) => {
-//                 setSubServices((prev) => ({
-//                   ...prev,
-//                   [value]: Array.isArray(res.data) ? res.data : [],
-//                 }));
-//               })
-//               .catch((err) => {
-//                 console.error("Failed to load sub-services:", err);
-//                 setError("Failed to load sub-services.");
-//               });
-//           }
-//         }
-//       } else if (timingIndex !== undefined) {
-//         newFormData.employeeTimings[timingIndex][name] = value;
-//       } else if (ruleIndex !== undefined) {
-//         const field =
-//           name === "slaTypeId"
-//             ? "slaTypeId"
-//             : name === "priorityId"
-//             ? "priorityId"
-//             : name;
-//         newFormData.slaRules[ruleIndex][field] = value;
-//         if (name === "slaTypeId") {
-//           newFormData.slaRules[ruleIndex].priorityId = "";
-//         }
-//       } else {
-//         newFormData[name] = value;
-//       }
-
-//       return newFormData;
-//     });
-
-//     // Update validation errors
-//     const errors = validateField(
-//       name,
-//       value,
-//       serviceIndex,
-//       subServiceIndex,
-//       scopeIndex,
-//       timingIndex,
-//       ruleIndex
-//     );
-//     setValidationErrors((prev) => ({ ...prev, ...errors }));
-//   };
-
-//   const handleSlaTypeChange = (
-//     e,
-//     serviceIndex,
-//     subServiceIndex,
-//     scopeIndex,
-//     ruleIndex
-//   ) => {
-//     const slaTypeId = e.target.value;
-
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       if (ruleIndex !== undefined) {
-//         newFormData.slaRules[ruleIndex].slaTypeId = slaTypeId;
-//         newFormData.slaRules[ruleIndex].priorityId = "";
-//       } else {
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes[scopeIndex].slaTypeId = slaTypeId;
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes[scopeIndex].priorityId = "";
-//       }
-//       return newFormData;
-//     });
-
-//     setValidationErrors((prev) => ({
-//       ...prev,
-//       ...validateField(
-//         ruleIndex !== undefined ? "slaRuleSlaTypeId" : "slaTypeId",
-//         slaTypeId,
-//         serviceIndex,
-//         subServiceIndex,
-//         scopeIndex,
-//         undefined,
-//         ruleIndex
-//       ),
-//     }));
-
-//     if (slaTypeId) {
-//       contractService
-//         .getPriorityLevels(slaTypeId)
-//         .then((res) => {
-//           setPriorityLevels((prev) => ({
-//             ...prev,
-//             [slaTypeId]: Array.isArray(res.data) ? res.data : [],
-//           }));
-//         })
-//         .catch((err) => {
-//           console.error("Failed to load priority levels:", err);
-//           setPriorityLevels((prev) => ({
-//             ...prev,
-//             [slaTypeId]: [],
-//           }));
-//           setError("Failed to load priority levels. Please try again.");
-//         });
-//     }
-//   };
-
-//   const addService = () => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       services: [
-//         ...prev.services,
-//         {
-//           serviceId: "",
-//           subServices: [
-//             {
-//               subServiceId: "",
-//               serviceScopes: [{ scopeId: "", slaTypeId: "", priorityId: "" }],
-//             },
-//           ],
-//         },
-//       ],
-//     }));
-//   };
-
-//   const addSubService = (serviceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices.push({
-//         subServiceId: "",
-//         serviceScopes: [{ scopeId: "", slaTypeId: "", priorityId: "" }],
-//       });
-//       return newFormData;
-//     });
-//   };
-
-//   const addServiceScope = (serviceIndex, subServiceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes.push({
-//         scopeId: "",
-//         slaTypeId: "",
-//         priorityId: "",
-//       });
-//       return newFormData;
-//     });
-//   };
-
-//   const removeService = (serviceIndex) => {
-//     setFormData((prev) => {
-//       const newServices = prev.services.filter(
-//         (_, idx) => idx !== serviceIndex
-//       );
-//       return {
-//         ...prev,
-//         services: newServices.length
-//           ? newServices
-//           : [
-//               {
-//                 serviceId: "",
-//                 subServices: [
-//                   {
-//                     subServiceId: "",
-//                     serviceScopes: [
-//                       { scopeId: "", slaTypeId: "", priorityId: "" },
-//                     ],
-//                   },
-//                 ],
-//               },
-//             ],
-//       };
-//     });
-//   };
-
-//   const removeSubService = (serviceIndex, subServiceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices = newFormData.services[
-//         serviceIndex
-//       ].subServices.filter((_, idx) => idx !== subServiceIndex);
-//       if (!newFormData.services[serviceIndex].subServices.length) {
-//         newFormData.services[serviceIndex].subServices = [
-//           {
-//             subServiceId: "",
-//             serviceScopes: [{ scopeId: "", slaTypeId: "", priorityId: "" }],
-//           },
-//         ];
-//       }
-//       return newFormData;
-//     });
-//   };
-
-//   const removeServiceScope = (serviceIndex, subServiceIndex, scopeIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes = newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes.filter((_, idx) => idx !== scopeIndex);
-//       if (
-//         !newFormData.services[serviceIndex].subServices[subServiceIndex]
-//           .serviceScopes.length
-//       ) {
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes = [{ scopeId: "", slaTypeId: "", priorityId: "" }];
-//       }
-//       return newFormData;
-//     });
-//   };
-
-//   const validateFormData = () => {
-//     const errors = {};
-//     if (!formData.contractName) errors.contractName = "Required field.";
-//     if (!formData.companyId) errors.companyId = "Required field.";
-//     if (!formData.projectType) errors.projectType = "Required field.";
-//     if (!formData.startDate) errors.startDate = "Required field.";
-//     if (!formData.endDate) errors.endDate = "Required field.";
-//     if (!formData.services.length) errors.services = "At least one required.";
-
-//     formData.services.forEach((service, serviceIndex) => {
-//       if (!service.serviceId)
-//         errors[`service-${serviceIndex}`] = "Required field.";
-//       if (!service.subServices.length)
-//         errors[`subServices-${serviceIndex}`] =
-//           "At least one sub-service required.";
-//       service.subServices.forEach((subService, subServiceIndex) => {
-//         if (!subService.subServiceId)
-//           errors[`subService-${serviceIndex}-${subServiceIndex}`] =
-//             "Required field.";
-//         if (!subService.serviceScopes.length)
-//           errors[`scopes-${serviceIndex}-${subServiceIndex}`] =
-//             "At least one scope required.";
-//         subService.serviceScopes.forEach((scope, scopeIndex) => {
-//           if (!scope.scopeId)
-//             errors[`scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//               "Required field.";
-//           if (!scope.slaTypeId)
-//             errors[`slaType-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//               "Required field.";
-//           if (!scope.priorityId)
-//             errors[
-//               `priority-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//             ] = "Required field.";
-//         });
-//       });
-//     });
-
-//     formData.employeeTimings.forEach((timing, timingIndex) => {
-//       if (!/^\d{2}:\d{2}$/.test(timing.dutyStartTime))
-//         errors[`dutyStartTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//       if (!/^\d{2}:\d{2}$/.test(timing.dutyEndTime))
-//         errors[`dutyEndTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//       if (!/^\d{2}:\d{2}$/.test(timing.offDutyStartTime))
-//         errors[`offDutyStartTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//       if (!/^\d{2}:\d{2}$/.test(timing.offDutyEndTime))
-//         errors[`offDutyEndTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//     });
-
-//     formData.slaRules.forEach((rule, ruleIndex) => {
-//       if (!rule.slaTypeId)
-//         errors[`slaRuleSlaType-${ruleIndex}`] = "Required field.";
-//       if (!rule.priorityId)
-//         errors[`slaRulePriority-${ruleIndex}`] = "Required field.";
-//       if (rule.responseTimeHours === "" || rule.responseTimeHours < 0)
-//         errors[`responseTimeHours-${ruleIndex}`] = "Valid time required.";
-//       if (rule.resolutionTimeHours === "" || rule.resolutionTimeHours < 0)
-//         errors[`resolutionTimeHours-${ruleIndex}`] = "Valid time required.";
-//     });
-
-//     return errors;
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     const errors = validateFormData();
-//     if (Object.keys(errors).length) {
-//       setValidationErrors(errors);
-//       return;
-//     }
-//     setValidationErrors({});
-
-//     try {
-//       // Make sure all SLA rules have response and resolution times
-//       const hasIncompleteSlaRules = formData.slaRules.some(
-//         (rule) =>
-//           rule.responseTimeHours === "" || rule.resolutionTimeHours === ""
-//       );
-
-//       if (hasIncompleteSlaRules) {
-//         setError(
-//           "Please fill in response and resolution times for all SLA rules."
-//         );
-//         return;
-//       }
-
-//       const cleanedFormData = {
-//         contractName: formData.contractName,
-//         companyId: Number.parseInt(formData.companyId, 10),
-//         projectLocation: formData.projectLocation,
-//         projectType: formData.projectType,
-//         startDate: formData.startDate,
-//         endDate: formData.endDate,
-//         services: formData.services.map((service) => ({
-//           serviceId: Number.parseInt(service.serviceId, 10),
-//           subServices: service.subServices.map((subService) => ({
-//             subServiceId: Number.parseInt(subService.subServiceId, 10),
-//             serviceScopes: subService.serviceScopes.map((scope) => ({
-//               scopeId: Number.parseInt(scope.scopeId, 10),
-//               slaTypeId: Number.parseInt(scope.slaTypeId, 10),
-//               priorityId: Number.parseInt(scope.priorityId, 10),
-//             })),
-//           })),
-//         })),
-//         employeeTimings: formData.employeeTimings.map((timing) => ({
-//           dayOfWeek: timing.dayOfWeek,
-//           dutyStartTime: timing.dutyStartTime + ":00",
-//           dutyEndTime: timing.dutyEndTime + ":00",
-//           offDutyStartTime: timing.offDutyStartTime + ":00",
-//           offDutyEndTime: timing.offDutyEndTime + ":00",
-//         })),
-//         slaRules: formData.slaRules.map((rule) => ({
-//           slaTypeId: Number.parseInt(rule.slaTypeId, 10),
-//           priorityId: Number.parseInt(rule.priorityId, 10),
-//           responseTimeHours: Number.parseFloat(rule.responseTimeHours),
-//           resolutionTimeHours: Number.parseFloat(rule.resolutionTimeHours),
-//           isFromServiceScope: rule.isFromServiceScope || true,
-//         })),
-//       };
-
-//       console.log("Submitting contract data:", cleanedFormData);
-//       onSubmit(cleanedFormData);
-//     } catch (err) {
-//       console.error("Error processing form data:", err);
-//       setError(
-//         "An error occurred while processing your form data. Please check all fields and try again."
-//       );
-//     }
-//   };
-
-//   const toggleCollapse = (type, index, subIndex) => {
-//     const key = `${type}-${index}${
-//       subIndex !== undefined ? `-${subIndex}` : ""
-//     }`;
-//     setCollapsedSections((prev) => ({
-//       ...prev,
-//       [key]: !prev[key],
-//     }));
-//   };
-
-//   // Get auto-generated and manual rules separately
-//   const autoGeneratedRules = formData.slaRules.filter(
-//     (rule) => rule.isFromServiceScope
-//   );
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-screen bg-gray-100">
-//         <div className="relative">
-//           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-//           <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-600">
-//             Loading...
-//           </span>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="text-center p-4 py-8 bg-red-50 text-red-700 rounded-lg max-w-md mx-auto mt-6">
-//         <p className="text-lg font-medium">{error}</p>
-//         <button
-//           onClick={() => window.location.reload()}
-//           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-//         >
-//           Try Again
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="max-w-4xl mx-auto p-4 py-6 w-full bg-white rounded-lg shadow-lg mt-6">
-//       <h3 className="text-2xl font-bold text-gray-800 mb-6">Create Contract</h3>
-
-//       {Object.keys(validationErrors).length > 0 && (
-//         <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg flex items-center">
-//           <svg
-//             className="w-5 h-5 mr-2"
-//             fill="none"
-//             stroke="currentColor"
-//             viewBox="0 0 24 24"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth="2"
-//               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 0 9 0 0118 0z"
-//             />
-//           </svg>
-//           {Object.values(validationErrors)[0]}
-//         </div>
-//       )}
-
-//       <div className="mb-6 border-b border-gray-200">
-//         <div className="flex flex-wrap">
-//           {[
-//             { id: "basic", label: "Basic Information" },
-//             { id: "services", label: "Services" },
-//             { id: "timings", label: "Employee Timings" },
-//             { id: "sla", label: "SLA Rules" },
-//           ].map((tab) => (
-//             <button
-//               key={tab.id}
-//               className={`px-4 py-2 font-medium text-sm ${
-//                 activeTab === tab.id
-//                   ? "border-b-2 border-blue-600 text-blue-600"
-//                   : "text-gray-600 hover:text-blue-700"
-//               }`}
-//               onClick={() => setActiveTab(tab.id)}
-//             >
-//               {tab.label}
-//               {tab.id === "sla" && autoGeneratedRules.length > 0 && (
-//                 <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-//                   {autoGeneratedRules.length}
-//                 </span>
-//               )}
-//             </button>
-//           ))}
-//         </div>
-//       </div>
-
-//       <form onSubmit={handleSubmit} className="space-y-6">
-//         {activeTab === "basic" && (
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Contract Name
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Enter a unique name for the contract"
-//                 />
-//               </label>
-//               <input
-//                 type="text"
-//                 name="contractName"
-//                 value={formData.contractName}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.contractName
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.contractName && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.contractName}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Company
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Select the company associated with this contract"
-//                 />
-//               </label>
-//               <select
-//                 name="companyId"
-//                 value={formData.companyId}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.companyId
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               >
-//                 <option value="">Select Company</option>
-//                 {companies.map((company) => (
-//                   <option
-//                     key={company.companyId}
-//                     value={company.companyId.toString()}
-//                   >
-//                     {company.companyName}
-//                   </option>
-//                 ))}
-//               </select>
-//               {validationErrors.companyId && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.companyId}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Project Location
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Optional: Specify the project location"
-//                 />
-//               </label>
-//               <input
-//                 type="text"
-//                 name="projectLocation"
-//                 value={formData.projectLocation}
-//                 onChange={handleChange}
-//                 className="w-full p-3 border rounded-md border-gray-200 bg-white focus:ring-blue-500 focus:shadow-md transition-colors"
-//               />
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Project Type
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Choose the contract duration type"
-//                 />
-//               </label>
-//               <select
-//                 name="projectType"
-//                 value={formData.projectType}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.projectType
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               >
-//                 <option value="">Select Project Type</option>
-//                 <option value="ANNUAL">Annual</option>
-//                 <option value="ONE_TIME">One Time</option>
-//               </select>
-//               {validationErrors.projectType && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.projectType}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Start Date
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Contract start date"
-//                 />
-//               </label>
-//               <input
-//                 type="date"
-//                 name="startDate"
-//                 value={formData.startDate}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.startDate
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.startDate && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.startDate}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 End Date
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Contract end date"
-//                 />
-//               </label>
-//               <input
-//                 type="date"
-//                 name="endDate"
-//                 value={formData.endDate}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.endDate
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.endDate && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.endDate}
-//                 </p>
-//               )}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "services" && (
-//           <div className="space-y-4">
-//             {formData.services.map((service, serviceIndex) => (
-//               <div
-//                 key={serviceIndex}
-//                 className="bg-gray-50 p-6 rounded-lg shadow-sm"
-//               >
-//                 <div
-//                   className="flex items-center justify-between bg-blue-100 p-4 rounded-md cursor-pointer hover:bg-blue-200"
-//                   onClick={() => toggleCollapse("service", serviceIndex)}
-//                 >
-//                   <h4 className="text-lg font-semibold text-blue-700">
-//                     Service {serviceIndex + 1}
-//                   </h4>
-//                   <div className="flex items-center space-x-4">
-//                     <button
-//                       type="button"
-//                       className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         removeService(serviceIndex);
-//                       }}
-//                       disabled={formData.services.length === 1}
-//                       title="Remove Service"
-//                     >
-//                       <TrashIcon className="h-4 w-4" />
-//                     </button>
-//                     {collapsedSections[`service-${serviceIndex}`] ? (
-//                       <ChevronUpIcon className="h-4 w-4 text-blue-600" />
-//                     ) : (
-//                       <ChevronDownIcon className="h-4 w-4 text-blue-600" />
-//                     )}
-//                   </div>
-//                 </div>
-
-//                 {!collapsedSections[`service-${serviceIndex}`] && (
-//                   <div className="mt-6 space-y-4">
-//                     <div className="relative">
-//                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                         Service
-//                         <InformationCircleIcon
-//                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                           title="Select the main service category"
-//                         />
-//                       </label>
-//                       <select
-//                         name="serviceId"
-//                         value={service.serviceId}
-//                         onChange={(e) => handleChange(e, serviceIndex)}
-//                         className={`w-full p-3 border rounded-md ${
-//                           validationErrors[`service-${serviceIndex}`]
-//                             ? "border-red-500"
-//                             : "border-gray-200"
-//                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                       >
-//                         <option value="">Select Service</option>
-//                         {services.map((s) => (
-//                           <option
-//                             key={s.serviceId}
-//                             value={s.serviceId.toString()}
-//                           >
-//                             {s.serviceName}
-//                           </option>
-//                         ))}
-//                       </select>
-//                       {validationErrors[`service-${serviceIndex}`] && (
-//                         <p className="text-red-500 text-xs mt-1">
-//                           {validationErrors[`service-${serviceIndex}`]}
-//                         </p>
-//                       )}
-//                     </div>
-
-//                     {service.subServices.map((subService, subServiceIndex) => (
-//                       <div
-//                         key={subServiceIndex}
-//                         className="ml-6 p-4 bg-gray-100 rounded-lg shadow-sm"
-//                       >
-//                         <div
-//                           className="flex items-center justify-between bg-gray-200 p-4 rounded-md cursor-pointer hover:bg-gray-300"
-//                           onClick={() =>
-//                             toggleCollapse(
-//                               "subService",
-//                               serviceIndex,
-//                               subServiceIndex
-//                             )
-//                           }
-//                         >
-//                           <h5 className="text-md font-medium text-gray-600">
-//                             Sub-Service {subServiceIndex + 1}
-//                           </h5>
-//                           <div className="flex items-center space-x-4">
-//                             <button
-//                               type="button"
-//                               className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                               onClick={(e) => {
-//                                 e.preventDefault();
-//                                 e.stopPropagation();
-//                                 removeSubService(serviceIndex, subServiceIndex);
-//                               }}
-//                               disabled={service.subServices.length === 1}
-//                               title="Remove Sub-Service"
-//                             >
-//                               <TrashIcon className="h-4 w-4" />
-//                             </button>
-//                             {collapsedSections[
-//                               `subService-${serviceIndex}-${subServiceIndex}`
-//                             ] ? (
-//                               <ChevronUpIcon className="h-4 w-4 text-gray-600" />
-//                             ) : (
-//                               <ChevronDownIcon className="h-4 w-4 text-gray-600" />
-//                             )}
-//                           </div>
-//                         </div>
-
-//                         {!collapsedSections[
-//                           `subService-${serviceIndex}-${subServiceIndex}`
-//                         ] && (
-//                           <div className="mt-4 space-y-4">
-//                             <div className="relative">
-//                               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                 Sub-Service
-//                                 <InformationCircleIcon
-//                                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                   title="Select a sub-service"
-//                                 />
-//                               </label>
-//                               <select
-//                                 name="subServiceId"
-//                                 value={subService.subServiceId}
-//                                 onChange={(e) =>
-//                                   handleChange(e, serviceIndex, subServiceIndex)
-//                                 }
-//                                 className={`w-full p-3 border rounded-md ${
-//                                   validationErrors[
-//                                     `subService-${serviceIndex}-${subServiceIndex}`
-//                                   ]
-//                                     ? "border-red-500"
-//                                     : "border-gray-200"
-//                                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                 disabled={
-//                                   !service.serviceId ||
-//                                   !subServices[service.serviceId]?.length
-//                                 }
-//                               >
-//                                 <option value="">Select Sub-Service</option>
-//                                 {(subServices[service.serviceId] || []).map(
-//                                   (ss) => (
-//                                     <option
-//                                       key={ss.subServiceId}
-//                                       value={ss.subServiceId.toString()}
-//                                     >
-//                                       {ss.subServiceName}
-//                                     </option>
-//                                   )
-//                                 )}
-//                               </select>
-//                               {validationErrors[
-//                                 `subService-${serviceIndex}-${subServiceIndex}`
-//                               ] && (
-//                                 <p className="text-red-500 text-xs mt-1">
-//                                   {
-//                                     validationErrors[
-//                                       `subService-${serviceIndex}-${subServiceIndex}`
-//                                     ]
-//                                   }
-//                                 </p>
-//                               )}
-//                             </div>
-
-//                             {subService.serviceScopes.map(
-//                               (scope, scopeIndex) => (
-//                                 <div
-//                                   key={scopeIndex}
-//                                   className="ml-4 p-4 bg-white rounded-md shadow-sm"
-//                                 >
-//                                   <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
-//                                     <h6 className="text-sm font-medium text-gray-600">
-//                                       Scope {scopeIndex + 1}
-//                                     </h6>
-//                                     <button
-//                                       type="button"
-//                                       className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                                       onClick={() =>
-//                                         removeServiceScope(
-//                                           serviceIndex,
-//                                           subServiceIndex,
-//                                           scopeIndex
-//                                         )
-//                                       }
-//                                       disabled={
-//                                         subService.serviceScopes.length === 1
-//                                       }
-//                                       title="Remove Scope"
-//                                     >
-//                                       <TrashIcon className="h-4 w-4" />
-//                                     </button>
-//                                   </div>
-
-//                                   <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-//                                     <div className="relative">
-//                                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                         Service Scope
-//                                         <InformationCircleIcon
-//                                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                           title="Define the specific scope of work"
-//                                         />
-//                                       </label>
-//                                       <select
-//                                         name="scopeId"
-//                                         value={scope.scopeId}
-//                                         onChange={(e) =>
-//                                           handleChange(
-//                                             e,
-//                                             serviceIndex,
-//                                             subServiceIndex,
-//                                             scopeIndex
-//                                           )
-//                                         }
-//                                         className={`w-full p-3 border rounded-md ${
-//                                           validationErrors[
-//                                             `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                           ]
-//                                             ? "border-red-500"
-//                                             : "border-gray-200"
-//                                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                         disabled={
-//                                           !subService.subServiceId ||
-//                                           !serviceScopes[
-//                                             subService.subServiceId
-//                                           ]?.length
-//                                         }
-//                                       >
-//                                         <option value="">Select Scope</option>
-//                                         {(
-//                                           serviceScopes[
-//                                             subService.subServiceId
-//                                           ] || []
-//                                         ).map((sc) => (
-//                                           <option
-//                                             key={sc.scopeId}
-//                                             value={sc.scopeId.toString()}
-//                                           >
-//                                             {sc.scopeName}
-//                                           </option>
-//                                         ))}
-//                                       </select>
-//                                       {validationErrors[
-//                                         `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                       ] && (
-//                                         <p className="text-red-500 text-xs mt-1">
-//                                           {
-//                                             validationErrors[
-//                                               `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                             ]
-//                                           }
-//                                         </p>
-//                                       )}
-//                                     </div>
-
-//                                     <div className="relative">
-//                                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                         SLA Type
-//                                         <InformationCircleIcon
-//                                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                           title="Select the Service Level Agreement type"
-//                                         />
-//                                       </label>
-//                                       <select
-//                                         name="slaTypeId"
-//                                         value={scope.slaTypeId}
-//                                         onChange={(e) =>
-//                                           handleSlaTypeChange(
-//                                             e,
-//                                             serviceIndex,
-//                                             subServiceIndex,
-//                                             scopeIndex
-//                                           )
-//                                         }
-//                                         className={`w-full p-3 border rounded-md ${
-//                                           validationErrors[
-//                                             `slaType-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                           ]
-//                                             ? "border-red-500"
-//                                             : "border-gray-200"
-//                                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                       >
-//                                         <option value="">
-//                                           Select SLA Type
-//                                         </option>
-//                                         {slaTypes.map((sla) => (
-//                                           <option
-//                                             key={sla.slaTypeId}
-//                                             value={sla.slaTypeId.toString()}
-//                                           >
-//                                             {sla.slaTypeName}
-//                                           </option>
-//                                         ))}
-//                                       </select>
-//                                       {validationErrors[
-//                                         `slaType-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                       ] && (
-//                                         <p className="text-red-500 text-xs mt-1">
-//                                           {
-//                                             validationErrors[
-//                                               `slaType-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                             ]
-//                                           }
-//                                         </p>
-//                                       )}
-//                                     </div>
-
-//                                     <div className="relative">
-//                                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                         Priority Level
-//                                         <InformationCircleIcon
-//                                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                           title="Set the priority for this scope"
-//                                         />
-//                                       </label>
-//                                       <select
-//                                         name="priorityId"
-//                                         value={scope.priorityId}
-//                                         onChange={(e) =>
-//                                           handleChange(
-//                                             e,
-//                                             serviceIndex,
-//                                             subServiceIndex,
-//                                             scopeIndex
-//                                           )
-//                                         }
-//                                         className={`w-full p-3 border rounded-md ${
-//                                           validationErrors[
-//                                             `priority-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                           ]
-//                                             ? "border-red-500"
-//                                             : "border-gray-200"
-//                                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                         disabled={
-//                                           !scope.slaTypeId ||
-//                                           !priorityLevels[scope.slaTypeId]
-//                                             ?.length
-//                                         }
-//                                       >
-//                                         <option value="">
-//                                           Select Priority
-//                                         </option>
-//                                         {(
-//                                           priorityLevels[scope.slaTypeId] || []
-//                                         ).map((pl) => (
-//                                           <option
-//                                             key={pl.priorityId}
-//                                             value={pl.priorityId.toString()}
-//                                           >
-//                                             {pl.priorityName}
-//                                           </option>
-//                                         ))}
-//                                       </select>
-//                                       {validationErrors[
-//                                         `priority-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                       ] && (
-//                                         <p className="text-red-500 text-xs mt-1">
-//                                           {
-//                                             validationErrors[
-//                                               `priority-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                             ]
-//                                           }
-//                                         </p>
-//                                       )}
-//                                     </div>
-//                                   </div>
-//                                 </div>
-//                               )
-//                             )}
-
-//                             <button
-//                               type="button"
-//                               onClick={() =>
-//                                 addServiceScope(serviceIndex, subServiceIndex)
-//                               }
-//                               className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//                               title="Add a new scope"
-//                             >
-//                               <PlusIcon className="h-4 w-4 mr-2" />
-//                               Add Scope
-//                             </button>
-//                           </div>
-//                         )}
-//                       </div>
-//                     ))}
-
-//                     <button
-//                       type="button"
-//                       onClick={() => addSubService(serviceIndex)}
-//                       className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//                       title="Add a new sub-service"
-//                     >
-//                       <PlusIcon className="h-4 w-4 mr-2" />
-//                       Add Sub-Service
-//                     </button>
-//                   </div>
-//                 )}
-//               </div>
-//             ))}
-
-//             <button
-//               type="button"
-//               onClick={addService}
-//               className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//               title="Add a new service"
-//             >
-//               <PlusIcon className="h-4 w-4 mr-2" />
-//               Add Service
-//             </button>
-//           </div>
-//         )}
-
-//         {activeTab === "timings" && (
-//           <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-//             <h4 className="text-lg font-semibold text-gray-700 mb-4">
-//               Employee Timings
-//             </h4>
-//             <div className="space-y-4">
-//               {formData.employeeTimings.map((timing, timingIndex) => (
-//                 <div
-//                   key={timingIndex}
-//                   className="p-4 bg-white rounded-md shadow-sm grid grid-cols-1 md:grid-cols-5 gap-4"
-//                 >
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       {timing.dayOfWeek}
-//                     </label>
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Duty Start
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="dutyStartTime"
-//                       value={timing.dutyStartTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`dutyStartTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`dutyStartTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`dutyStartTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Duty End
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="dutyEndTime"
-//                       value={timing.dutyEndTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`dutyEndTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`dutyEndTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`dutyEndTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Off-Duty Start
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="offDutyStartTime"
-//                       value={timing.offDutyStartTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`offDutyStartTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`offDutyStartTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`offDutyStartTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Off-Duty End
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="offDutyEndTime"
-//                       value={timing.offDutyEndTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`offDutyEndTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`offDutyEndTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`offDutyEndTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "sla" && (
-//           <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-//             <div className="flex items-center justify-between mb-4">
-//               <h4 className="text-lg font-semibold text-gray-700">SLA Rules</h4>
-//               <div className="text-sm text-gray-500">
-//                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">
-//                   {autoGeneratedRules.length}
-//                 </span>
-//                 Auto-generated from service scopes
-//               </div>
-//             </div>
-
-//             {/* Service Scope Based Rules */}
-//             {autoGeneratedRules.length > 0 ? (
-//               <div className="mb-6">
-//                 <h5 className="text-md font-medium text-gray-600 mb-3 bg-blue-50 p-3 rounded flex items-center">
-//                   <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">
-//                     {autoGeneratedRules.length}
-//                   </span>
-//                   Service Scope Based SLA Rules
-//                 </h5>
-//                 <div className="space-y-3">
-//                   {autoGeneratedRules.map((rule, index) => {
-//                     const actualIndex = formData.slaRules.findIndex(
-//                       (r) => r === rule
-//                     );
-//                     return (
-//                       <div
-//                         key={actualIndex}
-//                         className="p-4 bg-blue-50 rounded-md shadow-sm border-l-4 border-blue-400"
-//                       >
-//                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-//                           <div className="relative">
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">
-//                               Service Scope
-//                             </label>
-//                             <input
-//                               type="text"
-//                               value={rule.scopeName}
-//                               disabled
-//                               className="w-full p-2 border rounded-md border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
-//                             />
-//                           </div>
-//                           <div className="relative">
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">
-//                               SLA Type
-//                             </label>
-//                             <select
-//                               value={rule.slaTypeId}
-//                               disabled
-//                               className="w-full p-2 border rounded-md border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
-//                             >
-//                               <option value="">Select SLA Type</option>
-//                               {slaTypes.map((sla) => (
-//                                 <option
-//                                   key={sla.slaTypeId}
-//                                   value={sla.slaTypeId.toString()}
-//                                 >
-//                                   {sla.slaTypeName}
-//                                 </option>
-//                               ))}
-//                             </select>
-//                           </div>
-//                           <div className="relative">
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">
-//                               Priority Level
-//                             </label>
-//                             <select
-//                               value={rule.priorityId}
-//                               disabled
-//                               className="w-full p-2 border rounded-md border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
-//                             >
-//                               <option value="">Select Priority</option>
-//                               {(priorityLevels[rule.slaTypeId] || []).map(
-//                                 (pl) => (
-//                                   <option
-//                                     key={pl.priorityId}
-//                                     value={pl.priorityId.toString()}
-//                                   >
-//                                     {pl.priorityName}
-//                                   </option>
-//                                 )
-//                               )}
-//                             </select>
-//                           </div>
-//                           <div className="relative">
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">
-//                               Response Time (Hours) *
-//                             </label>
-//                             <input
-//                               type="number"
-//                               name="responseTimeHours"
-//                               value={rule.responseTimeHours}
-//                               onChange={(e) =>
-//                                 handleChange(
-//                                   e,
-//                                   undefined,
-//                                   undefined,
-//                                   undefined,
-//                                   undefined,
-//                                   actualIndex
-//                                 )
-//                               }
-//                               className={`w-full p-2 border rounded-md ${
-//                                 validationErrors[
-//                                   `responseTimeHours-${actualIndex}`
-//                                 ]
-//                                   ? "border-red-500"
-//                                   : "border-blue-300"
-//                               } bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-//                               step="0.1"
-//                               min="0"
-//                               placeholder="Enter hours"
-//                             />
-//                             {validationErrors[
-//                               `responseTimeHours-${actualIndex}`
-//                             ] && (
-//                               <p className="text-red-500 text-xs mt-1">
-//                                 {
-//                                   validationErrors[
-//                                     `responseTimeHours-${actualIndex}`
-//                                   ]
-//                                 }
-//                               </p>
-//                             )}
-//                           </div>
-//                           <div className="relative">
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">
-//                               Resolution Time (Hours) *
-//                             </label>
-//                             <input
-//                               type="number"
-//                               name="resolutionTimeHours"
-//                               value={rule.resolutionTimeHours}
-//                               onChange={(e) =>
-//                                 handleChange(
-//                                   e,
-//                                   undefined,
-//                                   undefined,
-//                                   undefined,
-//                                   undefined,
-//                                   actualIndex
-//                                 )
-//                               }
-//                               className={`w-full p-2 border rounded-md ${
-//                                 validationErrors[
-//                                   `resolutionTimeHours-${actualIndex}`
-//                                 ]
-//                                   ? "border-red-500"
-//                                   : "border-blue-300"
-//                               } bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-//                               step="0.1"
-//                               min="0"
-//                               placeholder="Enter hours"
-//                             />
-//                             {validationErrors[
-//                               `resolutionTimeHours-${actualIndex}`
-//                             ] && (
-//                               <p className="text-red-500 text-xs mt-1">
-//                                 {
-//                                   validationErrors[
-//                                     `resolutionTimeHours-${actualIndex}`
-//                                   ]
-//                                 }
-//                               </p>
-//                             )}
-//                           </div>
-//                         </div>
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//                 <div className="mt-3 p-3 bg-blue-100 rounded-md">
-//                   <p className="text-sm text-blue-700">
-//                     <InformationCircleIcon className="inline h-4 w-4 mr-1" />
-//                     These SLA rules are automatically generated from your
-//                     service scopes. You only need to fill in the response and
-//                     resolution times. Rules update automatically when you modify
-//                     service scopes.
-//                   </p>
-//                 </div>
-//               </div>
-//             ) : (
-//               <div className="text-center py-8">
-//                 <div className="bg-gray-100 rounded-lg p-6">
-//                   <InformationCircleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-//                   <h5 className="text-lg font-medium text-gray-600 mb-2">
-//                     No SLA Rules Found
-//                   </h5>
-//                   <p className="text-sm text-gray-500 mb-4">
-//                     SLA rules will be automatically generated based on your
-//                     service scopes. Please add service scopes in the Services
-//                     tab first.
-//                   </p>
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Submit Button - Only in SLA Rules Tab */}
-//             <div className="mt-8 pt-6 border-t border-gray-200">
-//               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
-//                 <h6 className="text-sm font-medium text-gray-700 mb-2">
-//                   Ready to Create Contract?
-//                 </h6>
-//                 <p className="text-xs text-gray-600">
-//                   Review all the information above and click the button below to
-//                   create your contract.
-//                 </p>
-//               </div>
-//               <button
-//                 type="submit"
-//                 className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 font-medium text-lg shadow-lg transition-all duration-200"
-//               >
-//                 Create Contract
-//               </button>
-//             </div>
-//           </div>
-//         )}
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default ContractForm;
-
-// "use client";
-
-// import { useState, useEffect, useCallback, useRef } from "react";
-// import { companyService } from "../services/companyService";
-// import { contractService } from "../services/contractService";
-// import {
-//   ChevronDownIcon,
-//   ChevronUpIcon,
-//   PlusIcon,
-//   TrashIcon,
-//   InformationCircleIcon,
-// } from "@heroicons/react/24/outline";
-
-// const ContractForm = ({ onSubmit }) => {
-//   const updateTimeoutRef = useRef(null);
-
-//   const [formData, setFormData] = useState({
-//     contractName: "",
-//     companyId: "",
-//     projectLocation: "",
-//     projectType: "",
-//     startDate: "",
-//     endDate: "",
-//     services: [
-//       {
-//         serviceId: "",
-//         subServices: [
-//           {
-//             subServiceId: "",
-//             serviceScopes: [{ scopeId: "" }],
-//           },
-//         ],
-//       },
-//     ],
-//     employeeTimings: [
-//       { dayOfWeek: "MONDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "TUESDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "WEDNESDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "THURSDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "FRIDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "SATURDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//       { dayOfWeek: "SUNDAY", dutyStartTime: "09:00", dutyEndTime: "17:00" },
-//     ],
-//     slaRules: [],
-//   });
-
-//   const [companies, setCompanies] = useState([]);
-//   const [services, setServices] = useState([]);
-//   const [subServices, setSubServices] = useState({});
-//   const [serviceScopes, setServiceScopes] = useState({});
-//   const [slaTypes, setSlaTypes] = useState([]);
-//   const [priorityLevels, setPriorityLevels] = useState({});
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [validationErrors, setValidationErrors] = useState({});
-//   const [collapsedSections, setCollapsedSections] = useState({});
-//   const [activeTab, setActiveTab] = useState("basic");
-
-//   // Predefined SLA rules configuration
-//   const slaRulesConfig = [
-//     { slaTypeId: "1", priorityIds: ["1", "2", "3"] }, // CM: CM_P1, CM_P2, CM_P3
-//     { slaTypeId: "2", priorityIds: ["4"] }, // PM: PM_P4
-//     { slaTypeId: "3", priorityIds: ["5", "6", "7"] }, // RM: RM_P1, RM_P2, RM_P3
-//   ];
-
-//   // Generate SLA rules from service scopes
-//   const generateSlaRulesFromScopes = useCallback(() => {
-//     const rules = [];
-//     let ruleCounter = 0;
-
-//     formData.services.forEach((service, serviceIndex) => {
-//       service.subServices.forEach((subService, subServiceIndex) => {
-//         subService.serviceScopes.forEach((scope, scopeIndex) => {
-//           if (scope.scopeId) {
-//             const scopeData = serviceScopes[subService.subServiceId]?.find(
-//               (s) => s.scopeId.toString() === scope.scopeId
-//             );
-
-//             // Generate rules for each SLA type and its priorities
-//             slaRulesConfig.forEach(
-//               ({ slaTypeId, priorityIds }, configIndex) => {
-//                 priorityIds.forEach((priorityId) => {
-//                   const uniqueKey = `${serviceIndex}-${subServiceIndex}-${scopeIndex}-${slaTypeId}-${priorityId}-${scope.scopeId}`;
-//                   rules.push({
-//                     slaTypeId,
-//                     priorityId,
-//                     responseTimeHours: "",
-//                     resolutionTimeHours: "",
-//                     scopeName: scopeData?.scopeName || `Scope ${scope.scopeId}`,
-//                     scopeId: scope.scopeId,
-//                     isFromServiceScope: true,
-//                     uniqueKey,
-//                     ruleId: ruleCounter++,
-//                   });
-//                 });
-//               }
-//             );
-//           }
-//         });
-//       });
-//     });
-
-//     console.log("Generated SLA rules:", rules);
-//     return rules;
-//   }, [formData.services, serviceScopes]);
-
-//   // Update SLA rules when service scopes change
-//   const updateSlaRules = useCallback(() => {
-//     const newGeneratedRules = generateSlaRulesFromScopes();
-
-//     setFormData((prev) => {
-//       const existingAutoRulesMap = new Map();
-//       prev.slaRules
-//         .filter((rule) => rule.isFromServiceScope)
-//         .forEach((rule) => {
-//           existingAutoRulesMap.set(rule.uniqueKey, rule);
-//         });
-
-//       const updatedAutoRules = newGeneratedRules.map((newRule) => {
-//         const existingRule = existingAutoRulesMap.get(newRule.uniqueKey);
-//         return {
-//           ...newRule,
-//           responseTimeHours: existingRule?.responseTimeHours || "",
-//           resolutionTimeHours: existingRule?.resolutionTimeHours || "",
-//         };
-//       });
-
-//       return {
-//         ...prev,
-//         slaRules: updatedAutoRules,
-//       };
-//     });
-//   }, [generateSlaRulesFromScopes]);
-
-//   // Effect to update SLA rules when services or scopes change
-//   useEffect(() => {
-//     const hasConfiguredScopes = formData.services.some((service) =>
-//       service.subServices.some((subService) =>
-//         subService.serviceScopes.some((scope) => scope.scopeId)
-//       )
-//     );
-
-//     console.log("Has configured scopes:", hasConfiguredScopes);
-
-//     if (hasConfiguredScopes) {
-//       updateSlaRules();
-//     } else {
-//       setFormData((prev) => ({
-//         ...prev,
-//         slaRules: [],
-//       }));
-//     }
-//   }, [formData.services, serviceScopes, updateSlaRules]);
-
-//   // Effect to trigger SLA rules update when switching to SLA tab
-//   useEffect(() => {
-//     if (activeTab === "sla") {
-//       updateSlaRules();
-//     }
-//   }, [activeTab, updateSlaRules]);
-
-//   // Fetch initial data
-//   useEffect(() => {
-//     const fetchInitialData = async () => {
-//       try {
-//         setLoading(true);
-//         setError(null);
-
-//         const [companiesRes, servicesRes, slaTypesRes] = await Promise.all([
-//           companyService.getAllCompanies(),
-//           contractService.getServices(),
-//           contractService.getSlaTypes(),
-//         ]);
-
-//         const companiesData = Array.isArray(companiesRes.data)
-//           ? companiesRes.data
-//           : [];
-//         const servicesData = Array.isArray(servicesRes.data)
-//           ? servicesRes.data
-//           : [];
-//         const slaTypesData = Array.isArray(slaTypesRes.data)
-//           ? slaTypesRes.data
-//           : [];
-
-//         setCompanies(companiesData);
-//         setServices(servicesData);
-//         setSlaTypes(slaTypesData);
-
-//         // Fetch priority levels for all SLA types
-//         const priorityPromises = slaTypesData.map((slaType) =>
-//           contractService.getPriorityLevels(slaType.slaTypeId)
-//         );
-//         const priorityResponses = await Promise.all(priorityPromises);
-//         const priorityMap = {};
-//         slaTypesData.forEach((slaType, index) => {
-//           priorityMap[slaType.slaTypeId] = Array.isArray(
-//             priorityResponses[index].data
-//           )
-//             ? priorityResponses[index].data
-//             : [];
-//         });
-//         setPriorityLevels(priorityMap);
-//       } catch (err) {
-//         console.error("Error fetching initial data:", err);
-//         setError("Failed to load form data. Please try again.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchInitialData();
-//   }, []);
-
-//   // Validate individual fields
-//   const validateField = (
-//     name,
-//     value,
-//     serviceIndex,
-//     subServiceIndex,
-//     scopeIndex,
-//     timingIndex,
-//     ruleIndex
-//   ) => {
-//     const errors = {};
-//     if (name === "contractName" && !value)
-//       errors.contractName = "Contract name is required.";
-//     if (name === "companyId" && !value)
-//       errors.companyId = "Company is required.";
-//     if (name === "projectType" && !value)
-//       errors.projectType = "Project type is required.";
-//     if (name === "startDate" && !value)
-//       errors.startDate = "Start date is required.";
-//     if (name === "endDate" && !value) errors.endDate = "End date is required.";
-//     if (name === "serviceId" && !value)
-//       errors[`service-${serviceIndex}`] = "Service is required.";
-//     if (name === "subServiceId" && !value)
-//       errors[`subService-${serviceIndex}-${subServiceIndex}`] =
-//         "Sub-service is required.";
-//     if (name === "scopeId" && !value)
-//       errors[`scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//         "Scope is required.";
-//     if (name === "dutyStartTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`dutyStartTime-${timingIndex}`] = "Valid time (HH:MM) required.";
-//     if (name === "dutyEndTime" && !/^\d{2}:\d{2}$/.test(value))
-//       errors[`dutyEndTime-${timingIndex}`] = "Valid time (HH:MM) required.";
-//     if (name === "responseTimeHours" && (value === "" || value < 0))
-//       errors[`responseTimeHours-${ruleIndex}`] =
-//         "Valid response time required.";
-//     if (name === "resolutionTimeHours" && (value === "" || value < 0))
-//       errors[`resolutionTimeHours-${ruleIndex}`] =
-//         "Valid resolution time required.";
-//     return errors;
-//   };
-
-//   // Handle form field changes
-//   const handleChange = (
-//     e,
-//     serviceIndex,
-//     subServiceIndex,
-//     scopeIndex,
-//     timingIndex,
-//     ruleIndex
-//   ) => {
-//     const { name, value } = e.target;
-
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-
-//       if (
-//         serviceIndex !== undefined &&
-//         subServiceIndex !== undefined &&
-//         scopeIndex !== undefined
-//       ) {
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes[scopeIndex][name] = value;
-//       } else if (serviceIndex !== undefined && subServiceIndex !== undefined) {
-//         newFormData.services[serviceIndex].subServices[subServiceIndex][name] =
-//           value;
-//         if (name === "subServiceId") {
-//           newFormData.services[serviceIndex].subServices[
-//             subServiceIndex
-//           ].serviceScopes = [{ scopeId: "" }];
-//           if (value) {
-//             contractService
-//               .getServiceScopes(value)
-//               .then((res) => {
-//                 setServiceScopes((prev) => ({
-//                   ...prev,
-//                   [value]: Array.isArray(res.data) ? res.data : [],
-//                 }));
-//               })
-//               .catch((err) => {
-//                 console.error("Failed to load service scopes:", err);
-//                 setError("Failed to load service scopes.");
-//               });
-//           }
-//         }
-//       } else if (serviceIndex !== undefined) {
-//         newFormData.services[serviceIndex][name] = value;
-//         if (name === "serviceId") {
-//           newFormData.services[serviceIndex].subServices = [
-//             { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
-//           ];
-//           if (value) {
-//             contractService
-//               .getSubServices(value)
-//               .then((res) => {
-//                 setSubServices((prev) => ({
-//                   ...prev,
-//                   [value]: Array.isArray(res.data) ? res.data : [],
-//                 }));
-//               })
-//               .catch((err) => {
-//                 console.error("Failed to load sub-services:", err);
-//                 setError("Failed to load sub-services.");
-//               });
-//           }
-//         }
-//       } else if (timingIndex !== undefined) {
-//         newFormData.employeeTimings[timingIndex][name] = value;
-//       } else if (ruleIndex !== undefined) {
-//         newFormData.slaRules[ruleIndex][name] = value;
-//       } else {
-//         newFormData[name] = value;
-//       }
-
-//       return newFormData;
-//     });
-
-//     const errors = validateField(
-//       name,
-//       value,
-//       serviceIndex,
-//       subServiceIndex,
-//       scopeIndex,
-//       timingIndex,
-//       ruleIndex
-//     );
-//     setValidationErrors((prev) => ({ ...prev, ...errors }));
-//   };
-
-//   // Add service
-//   const addService = () => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       services: [
-//         ...prev.services,
-//         {
-//           serviceId: "",
-//           subServices: [{ subServiceId: "", serviceScopes: [{ scopeId: "" }] }],
-//         },
-//       ],
-//     }));
-//   };
-
-//   // Add sub-service
-//   const addSubService = (serviceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices.push({
-//         subServiceId: "",
-//         serviceScopes: [{ scopeId: "" }],
-//       });
-//       return newFormData;
-//     });
-//   };
-
-//   // Add service scope
-//   const addServiceScope = (serviceIndex, subServiceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes.push({ scopeId: "" });
-//       return newFormData;
-//     });
-//   };
-
-//   // Remove service
-//   const removeService = (serviceIndex) => {
-//     setFormData((prev) => {
-//       const newServices = prev.services.filter(
-//         (_, idx) => idx !== serviceIndex
-//       );
-//       return {
-//         ...prev,
-//         services: newServices.length
-//           ? newServices
-//           : [
-//               {
-//                 serviceId: "",
-//                 subServices: [
-//                   { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
-//                 ],
-//               },
-//             ],
-//       };
-//     });
-//   };
-
-//   // Remove sub-service
-//   const removeSubService = (serviceIndex, subServiceIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices = newFormData.services[
-//         serviceIndex
-//       ].subServices.filter((_, idx) => idx !== subServiceIndex);
-//       if (!newFormData.services[serviceIndex].subServices.length) {
-//         newFormData.services[serviceIndex].subServices = [
-//           { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
-//         ];
-//       }
-//       return newFormData;
-//     });
-//   };
-
-//   // Remove service scope
-//   const removeServiceScope = (serviceIndex, subServiceIndex, scopeIndex) => {
-//     setFormData((prev) => {
-//       const newFormData = { ...prev };
-//       newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes = newFormData.services[serviceIndex].subServices[
-//         subServiceIndex
-//       ].serviceScopes.filter((_, idx) => idx !== scopeIndex);
-//       if (
-//         !newFormData.services[serviceIndex].subServices[subServiceIndex]
-//           .serviceScopes.length
-//       ) {
-//         newFormData.services[serviceIndex].subServices[
-//           subServiceIndex
-//         ].serviceScopes = [{ scopeId: "" }];
-//       }
-//       return newFormData;
-//     });
-//   };
-
-//   // Validate entire form
-//   const validateFormData = () => {
-//     const errors = {};
-//     if (!formData.contractName) errors.contractName = "Required field.";
-//     if (!formData.companyId) errors.companyId = "Required field.";
-//     if (!formData.projectType) errors.projectType = "Required field.";
-//     if (!formData.startDate) errors.startDate = "Required field.";
-//     if (!formData.endDate) errors.endDate = "Required field.";
-//     if (!formData.services.length) errors.services = "At least one required.";
-
-//     formData.services.forEach((service, serviceIndex) => {
-//       if (!service.serviceId)
-//         errors[`service-${serviceIndex}`] = "Required field.";
-//       if (!service.subServices.length)
-//         errors[`subServices-${serviceIndex}`] =
-//           "At least one sub-service required.";
-//       service.subServices.forEach((subService, subServiceIndex) => {
-//         if (!subService.subServiceId)
-//           errors[`subService-${serviceIndex}-${subServiceIndex}`] =
-//             "Required field.";
-//         if (!subService.serviceScopes.length)
-//           errors[`scopes-${serviceIndex}-${subServiceIndex}`] =
-//             "At least one scope required.";
-//         subService.serviceScopes.forEach((scope, scopeIndex) => {
-//           if (!scope.scopeId)
-//             errors[`scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`] =
-//               "Required field.";
-//         });
-//       });
-//     });
-
-//     formData.employeeTimings.forEach((timing, timingIndex) => {
-//       if (!/^\d{2}:\d{2}$/.test(timing.dutyStartTime))
-//         errors[`dutyStartTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//       if (!/^\d{2}:\d{2}$/.test(timing.dutyEndTime))
-//         errors[`dutyEndTime-${timingIndex}`] =
-//           "Valid time format (HH:MM) required.";
-//     });
-
-//     formData.slaRules.forEach((rule, ruleIndex) => {
-//       if (rule.responseTimeHours === "" || rule.responseTimeHours < 0)
-//         errors[`responseTimeHours-${ruleIndex}`] = "Valid time required.";
-//       if (rule.resolutionTimeHours === "" || rule.resolutionTimeHours < 0)
-//         errors[`resolutionTimeHours-${ruleIndex}`] = "Valid time required.";
-//     });
-
-//     return errors;
-//   };
-
-//   // Handle form submission
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     const errors = validateFormData();
-//     if (Object.keys(errors).length) {
-//       setValidationErrors(errors);
-//       return;
-//     }
-//     setValidationErrors({});
-
-//     try {
-//       const hasIncompleteSlaRules = formData.slaRules.some(
-//         (rule) =>
-//           rule.responseTimeHours === "" || rule.resolutionTimeHours === ""
-//       );
-
-//       if (hasIncompleteSlaRules) {
-//         setError(
-//           "Please fill in response and resolution times for all SLA rules."
-//         );
-//         return;
-//       }
-
-//       const cleanedFormData = {
-//         contractName: formData.contractName,
-//         companyId: Number.parseInt(formData.companyId, 10),
-//         projectLocation: formData.projectLocation,
-//         projectType: formData.projectType,
-//         startDate: formData.startDate,
-//         endDate: formData.endDate,
-//         services: formData.services.map((service) => ({
-//           serviceId: Number.parseInt(service.serviceId, 10),
-//           subServices: service.subServices.map((subService) => ({
-//             subServiceId: Number.parseInt(subService.subServiceId, 10),
-//             serviceScopes: subService.serviceScopes.map((scope) => ({
-//               scopeId: Number.parseInt(scope.scopeId, 10),
-//               slaRules: formData.slaRules
-//                 .filter((rule) => rule.scopeId === scope.scopeId)
-//                 .map((rule) => ({
-//                   slaTypeId: Number.parseInt(rule.slaTypeId, 10),
-//                   priorityId: Number.parseInt(rule.priorityId, 10),
-//                   responseTimeHours: Number.parseFloat(rule.responseTimeHours),
-//                   resolutionTimeHours: Number.parseFloat(
-//                     rule.resolutionTimeHours
-//                   ),
-//                 })),
-//             })),
-//           })),
-//         })),
-//         employeeTimings: formData.employeeTimings.map((timing) => ({
-//           dayOfWeek: timing.dayOfWeek,
-//           dutyStartTime: timing.dutyStartTime + ":00",
-//           dutyEndTime: timing.dutyEndTime + ":00",
-//         })),
-//       };
-
-//       console.log("Submitting contract data:", cleanedFormData);
-//       onSubmit(cleanedFormData);
-//     } catch (err) {
-//       console.error("Error processing form data:", err);
-//       setError(
-//         "An error occurred while processing your form data. Please check all fields and try again."
-//       );
-//     }
-//   };
-
-//   // Toggle section collapse
-//   const toggleCollapse = (type, index, subIndex) => {
-//     const key = `${type}-${index}${
-//       subIndex !== undefined ? `-${subIndex}` : ""
-//     }`;
-//     setCollapsedSections((prev) => ({
-//       ...prev,
-//       [key]: !prev[key],
-//     }));
-//   };
-
-//   const autoGeneratedRules = formData.slaRules;
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-screen bg-gray-100">
-//         <div className="relative">
-//           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-//           <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-600">
-//             Loading...
-//           </span>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="text-center p-4 py-8 bg-red-50 text-red-700 rounded-lg max-w-md mx-auto mt-6">
-//         <p className="text-lg font-medium">{error}</p>
-//         <button
-//           onClick={() => window.location.reload()}
-//           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-//         >
-//           Try Again
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
-//       <h3 className="text-2xl font-bold text-gray-800 mb-6">Create Contract</h3>
-
-//       {Object.keys(validationErrors).length > 0 && (
-//         <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg flex items-center">
-//           <svg
-//             className="w-5 h-5 mr-2"
-//             fill="none"
-//             stroke="currentColor"
-//             viewBox="0 0 24 24"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth="2"
-//               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 0 9 0 0118 0z"
-//             />
-//           </svg>
-//           {Object.values(validationErrors)[0]}
-//         </div>
-//       )}
-
-//       <div className="mb-6 border-b border-gray-200">
-//         <div className="flex flex-wrap">
-//           {[
-//             { id: "basic", label: "Basic Information" },
-//             { id: "services", label: "Services" },
-//             { id: "timings", label: "Employee Timings" },
-//             { id: "sla", label: "SLA Rules" },
-//           ].map((tab) => (
-//             <button
-//               key={tab.id}
-//               className={`px-4 py-2 font-medium text-sm ${
-//                 activeTab === tab.id
-//                   ? "border-b-2 border-blue-600 text-blue-600"
-//                   : "text-gray-600 hover:text-blue-700"
-//               }`}
-//               onClick={() => setActiveTab(tab.id)}
-//             >
-//               {tab.label}
-//               {tab.id === "sla" && autoGeneratedRules.length > 0 && (
-//                 <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-//                   {autoGeneratedRules.length}
-//                 </span>
-//               )}
-//             </button>
-//           ))}
-//         </div>
-//       </div>
-
-//       <form onSubmit={handleSubmit} className="space-y-6">
-//         {activeTab === "basic" && (
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Contract Name
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Enter a unique name for the contract"
-//                 />
-//               </label>
-//               <input
-//                 type="text"
-//                 name="contractName"
-//                 value={formData.contractName}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.contractName
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.contractName && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.contractName}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Company
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Select the company associated with this contract"
-//                 />
-//               </label>
-//               <select
-//                 name="companyId"
-//                 value={formData.companyId}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.companyId
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               >
-//                 <option value="">Select Company</option>
-//                 {companies.map((company) => (
-//                   <option
-//                     key={company.companyId}
-//                     value={company.companyId.toString()}
-//                   >
-//                     {company.companyName}
-//                   </option>
-//                 ))}
-//               </select>
-//               {validationErrors.companyId && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.companyId}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Project Location
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Optional: Specify the project location"
-//                 />
-//               </label>
-//               <input
-//                 type="text"
-//                 name="projectLocation"
-//                 value={formData.projectLocation}
-//                 onChange={handleChange}
-//                 className="w-full p-3 border rounded-md border-gray-200 bg-white focus:ring-blue-500 focus:shadow-md transition-colors"
-//               />
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Project Type
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Choose the contract duration type"
-//                 />
-//               </label>
-//               <select
-//                 name="projectType"
-//                 value={formData.projectType}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.projectType
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               >
-//                 <option value="">Select Project Type</option>
-//                 <option value="ANNUAL">Annual</option>
-//                 <option value="ONE_TIME">One Time</option>
-//               </select>
-//               {validationErrors.projectType && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.projectType}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 Start Date
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Contract start date"
-//                 />
-//               </label>
-//               <input
-//                 type="date"
-//                 name="startDate"
-//                 value={formData.startDate}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.startDate
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.startDate && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.startDate}
-//                 </p>
-//               )}
-//             </div>
-
-//             <div className="relative">
-//               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-//                 End Date
-//                 <InformationCircleIcon
-//                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                   title="Contract end date"
-//                 />
-//               </label>
-//               <input
-//                 type="date"
-//                 name="endDate"
-//                 value={formData.endDate}
-//                 onChange={handleChange}
-//                 className={`w-full p-3 border rounded-md ${
-//                   validationErrors.endDate
-//                     ? "border-red-500"
-//                     : "border-gray-200"
-//                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//               />
-//               {validationErrors.endDate && (
-//                 <p className="text-red-500 text-xs mt-1">
-//                   {validationErrors.endDate}
-//                 </p>
-//               )}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "services" && (
-//           <div className="space-y-4">
-//             {formData.services.map((service, serviceIndex) => (
-//               <div
-//                 key={serviceIndex}
-//                 className="bg-gray-50 p-6 rounded-lg shadow-sm"
-//               >
-//                 <div
-//                   className="flex items-center justify-between bg-blue-100 p-4 rounded-md cursor-pointer hover:bg-blue-200"
-//                   onClick={() => toggleCollapse("service", serviceIndex)}
-//                 >
-//                   <h4 className="text-lg font-semibold text-blue-700">
-//                     Service {serviceIndex + 1}
-//                   </h4>
-//                   <div className="flex items-center space-x-4">
-//                     <button
-//                       type="button"
-//                       className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         removeService(serviceIndex);
-//                       }}
-//                       disabled={formData.services.length === 1}
-//                       title="Remove Service"
-//                     >
-//                       <TrashIcon className="h-4 w-4" />
-//                     </button>
-//                     {collapsedSections[`service-${serviceIndex}`] ? (
-//                       <ChevronUpIcon className="h-4 w-4 text-blue-600" />
-//                     ) : (
-//                       <ChevronDownIcon className="h-4 w-4 text-blue-600" />
-//                     )}
-//                   </div>
-//                 </div>
-
-//                 {!collapsedSections[`service-${serviceIndex}`] && (
-//                   <div className="mt-6 space-y-4">
-//                     <div className="relative">
-//                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                         Service
-//                         <InformationCircleIcon
-//                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                           title="Select the main service category"
-//                         />
-//                       </label>
-//                       <select
-//                         name="serviceId"
-//                         value={service.serviceId}
-//                         onChange={(e) => handleChange(e, serviceIndex)}
-//                         className={`w-full p-3 border rounded-md ${
-//                           validationErrors[`service-${serviceIndex}`]
-//                             ? "border-red-500"
-//                             : "border-gray-200"
-//                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                       >
-//                         <option value="">Select Service</option>
-//                         {services.map((s) => (
-//                           <option
-//                             key={s.serviceId}
-//                             value={s.serviceId.toString()}
-//                           >
-//                             {s.serviceName}
-//                           </option>
-//                         ))}
-//                       </select>
-//                       {validationErrors[`service-${serviceIndex}`] && (
-//                         <p className="text-red-500 text-xs mt-1">
-//                           {validationErrors[`service-${serviceIndex}`]}
-//                         </p>
-//                       )}
-//                     </div>
-
-//                     {service.subServices.map((subService, subServiceIndex) => (
-//                       <div
-//                         key={subServiceIndex}
-//                         className="ml-6 p-4 bg-gray-100 rounded-lg shadow-sm"
-//                       >
-//                         <div
-//                           className="flex items-center justify-between bg-gray-200 p-4 rounded-md cursor-pointer hover:bg-gray-300"
-//                           onClick={() =>
-//                             toggleCollapse(
-//                               "subService",
-//                               serviceIndex,
-//                               subServiceIndex
-//                             )
-//                           }
-//                         >
-//                           <h5 className="text-md font-medium text-gray-600">
-//                             Sub-Service {subServiceIndex + 1}
-//                           </h5>
-//                           <div className="flex items-center space-x-4">
-//                             <button
-//                               type="button"
-//                               className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                               onClick={(e) => {
-//                                 e.preventDefault();
-//                                 e.stopPropagation();
-//                                 removeSubService(serviceIndex, subServiceIndex);
-//                               }}
-//                               disabled={service.subServices.length === 1}
-//                               title="Remove Sub-Service"
-//                             >
-//                               <TrashIcon className="h-4 w-4" />
-//                             </button>
-//                             {collapsedSections[
-//                               `subService-${serviceIndex}-${subServiceIndex}`
-//                             ] ? (
-//                               <ChevronUpIcon className="h-4 w-4 text-gray-600" />
-//                             ) : (
-//                               <ChevronDownIcon className="h-4 w-4 text-gray-600" />
-//                             )}
-//                           </div>
-//                         </div>
-
-//                         {!collapsedSections[
-//                           `subService-${serviceIndex}-${subServiceIndex}`
-//                         ] && (
-//                           <div className="mt-4 space-y-4">
-//                             <div className="relative">
-//                               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                 Sub-Service
-//                                 <InformationCircleIcon
-//                                   className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                   title="Select a sub-service"
-//                                 />
-//                               </label>
-//                               <select
-//                                 name="subServiceId"
-//                                 value={subService.subServiceId}
-//                                 onChange={(e) =>
-//                                   handleChange(e, serviceIndex, subServiceIndex)
-//                                 }
-//                                 className={`w-full p-3 border rounded-md ${
-//                                   validationErrors[
-//                                     `subService-${serviceIndex}-${subServiceIndex}`
-//                                   ]
-//                                     ? "border-red-500"
-//                                     : "border-gray-200"
-//                                 } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                 disabled={
-//                                   !service.serviceId ||
-//                                   !subServices[service.serviceId]?.length
-//                                 }
-//                               >
-//                                 <option value="">Select Sub-Service</option>
-//                                 {(subServices[service.serviceId] || []).map(
-//                                   (ss) => (
-//                                     <option
-//                                       key={ss.subServiceId}
-//                                       value={ss.subServiceId.toString()}
-//                                     >
-//                                       {ss.subServiceName}
-//                                     </option>
-//                                   )
-//                                 )}
-//                               </select>
-//                               {validationErrors[
-//                                 `subService-${serviceIndex}-${subServiceIndex}`
-//                               ] && (
-//                                 <p className="text-red-500 text-xs mt-1">
-//                                   {
-//                                     validationErrors[
-//                                       `subService-${serviceIndex}-${subServiceIndex}`
-//                                     ]
-//                                   }
-//                                 </p>
-//                               )}
-//                             </div>
-
-//                             {subService.serviceScopes.map(
-//                               (scope, scopeIndex) => (
-//                                 <div
-//                                   key={scopeIndex}
-//                                   className="ml-4 p-4 bg-white rounded-md shadow-sm"
-//                                 >
-//                                   <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
-//                                     <h6 className="text-sm font-medium text-gray-600">
-//                                       Scope {scopeIndex + 1}
-//                                     </h6>
-//                                     <button
-//                                       type="button"
-//                                       className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-//                                       onClick={() =>
-//                                         removeServiceScope(
-//                                           serviceIndex,
-//                                           subServiceIndex,
-//                                           scopeIndex
-//                                         )
-//                                       }
-//                                       disabled={
-//                                         subService.serviceScopes.length === 1
-//                                       }
-//                                       title="Remove Scope"
-//                                     >
-//                                       <TrashIcon className="h-4 w-4" />
-//                                     </button>
-//                                   </div>
-
-//                                   <div className="mt-4">
-//                                     <div className="relative">
-//                                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-//                                         Service Scope
-//                                         <InformationCircleIcon
-//                                           className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-//                                           title="Define the specific scope of work"
-//                                         />
-//                                       </label>
-//                                       <select
-//                                         name="scopeId"
-//                                         value={scope.scopeId}
-//                                         onChange={(e) =>
-//                                           handleChange(
-//                                             e,
-//                                             serviceIndex,
-//                                             subServiceIndex,
-//                                             scopeIndex
-//                                           )
-//                                         }
-//                                         className={`w-full p-3 border rounded-md ${
-//                                           validationErrors[
-//                                             `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                           ]
-//                                             ? "border-red-500"
-//                                             : "border-gray-200"
-//                                         } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                                         disabled={
-//                                           !subService.subServiceId ||
-//                                           !serviceScopes[
-//                                             subService.subServiceId
-//                                           ]?.length
-//                                         }
-//                                       >
-//                                         <option value="">Select Scope</option>
-//                                         {(
-//                                           serviceScopes[
-//                                             subService.subServiceId
-//                                           ] || []
-//                                         ).map((sc) => (
-//                                           <option
-//                                             key={sc.scopeId}
-//                                             value={sc.scopeId.toString()}
-//                                           >
-//                                             {sc.scopeName}
-//                                           </option>
-//                                         ))}
-//                                       </select>
-//                                       {validationErrors[
-//                                         `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                       ] && (
-//                                         <p className="text-red-500 text-xs mt-1">
-//                                           {
-//                                             validationErrors[
-//                                               `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-//                                             ]
-//                                           }
-//                                         </p>
-//                                       )}
-//                                     </div>
-//                                   </div>
-//                                 </div>
-//                               )
-//                             )}
-
-//                             <button
-//                               type="button"
-//                               onClick={() =>
-//                                 addServiceScope(serviceIndex, subServiceIndex)
-//                               }
-//                               className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//                               title="Add a new scope"
-//                             >
-//                               <PlusIcon className="h-4 w-4 mr-2" />
-//                               Add Scope
-//                             </button>
-//                           </div>
-//                         )}
-//                       </div>
-//                     ))}
-
-//                     <button
-//                       type="button"
-//                       onClick={() => addSubService(serviceIndex)}
-//                       className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//                       title="Add a new sub-service"
-//                     >
-//                       <PlusIcon className="h-4 w-4 mr-2" />
-//                       Add Sub-Service
-//                     </button>
-//                   </div>
-//                 )}
-//               </div>
-//             ))}
-
-//             <button
-//               type="button"
-//               onClick={addService}
-//               className="mt-4 flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-//               title="Add a new service"
-//             >
-//               <PlusIcon className="h-4 w-4 mr-2" />
-//               Add Service
-//             </button>
-//           </div>
-//         )}
-
-//         {activeTab === "timings" && (
-//           <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-//             <h4 className="text-lg font-semibold text-gray-700 mb-4">
-//               Employee Timings
-//             </h4>
-//             <div className="space-y-4">
-//               {formData.employeeTimings.map((timing, timingIndex) => (
-//                 <div
-//                   key={timingIndex}
-//                   className="p-4 bg-white rounded-md shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4"
-//                 >
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       {timing.dayOfWeek}
-//                     </label>
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Duty Start
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="dutyStartTime"
-//                       value={timing.dutyStartTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`dutyStartTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`dutyStartTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`dutyStartTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                   <div className="relative">
-//                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                       Duty End
-//                     </label>
-//                     <input
-//                       type="time"
-//                       name="dutyEndTime"
-//                       value={timing.dutyEndTime}
-//                       onChange={(e) =>
-//                         handleChange(
-//                           e,
-//                           undefined,
-//                           undefined,
-//                           undefined,
-//                           timingIndex
-//                         )
-//                       }
-//                       className={`w-full p-2 border rounded-md ${
-//                         validationErrors[`dutyEndTime-${timingIndex}`]
-//                           ? "border-red-500"
-//                           : "border-gray-200"
-//                       } bg-white focus:ring-blue-500 focus:shadow-md transition-colors`}
-//                     />
-//                     {validationErrors[`dutyEndTime-${timingIndex}`] && (
-//                       <p className="text-red-500 text-xs mt-1">
-//                         {validationErrors[`dutyEndTime-${timingIndex}`]}
-//                       </p>
-//                     )}
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "sla" && (
-//           <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-//             <div className="flex items-center justify-between mb-4">
-//               <h4 className="text-lg font-semibold text-gray-700">SLA Rules</h4>
-//               <div className="text-sm text-gray-500">
-//                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">
-//                   {autoGeneratedRules.length}
-//                 </span>
-//                 Auto-generated from service scopes
-//               </div>
-//             </div>
-
-//             {autoGeneratedRules.length > 0 ? (
-//               <div className="mb-6">
-//                 <h5 className="text-md font-medium text-gray-600 mb-3 bg-blue-50 p-3 rounded flex items-center">
-//                   <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">
-//                     {autoGeneratedRules.length}
-//                   </span>
-//                   Service Scope Based SLA Rules
-//                 </h5>
-//                 {formData.services.map((service, serviceIndex) =>
-//                   service.subServices.map((subService, subServiceIndex) =>
-//                     subService.serviceScopes.map((scope, scopeIndex) => {
-//                       const scopeRules = autoGeneratedRules.filter(
-//                         (rule) => rule.scopeId === scope.scopeId
-//                       );
-//                       if (!scopeRules.length) return null;
-
-//                       return (
-//                         <div
-//                           key={`${serviceIndex}-${subServiceIndex}-${scopeIndex}`}
-//                           className="mb-4"
-//                         >
-//                           <h6 className="text-sm font-semibold text-gray-700 mb-2">
-//                             {scopeRules[0].scopeName}
-//                           </h6>
-//                           <div className="space-y-3">
-//                             {scopeRules.map((rule, ruleIndex) => {
-//                               const actualIndex = formData.slaRules.findIndex(
-//                                 (r) => r === rule
-//                               );
-//                               const slaType = slaTypes.find(
-//                                 (sla) =>
-//                                   sla.slaTypeId.toString() === rule.slaTypeId
-//                               );
-//                               const priority = priorityLevels[
-//                                 rule.slaTypeId
-//                               ]?.find(
-//                                 (pl) =>
-//                                   pl.priorityId.toString() === rule.priorityId
-//                               );
-
-//                               return (
-//                                 <div
-//                                   key={actualIndex}
-//                                   className="p-4 bg-blue-50 rounded-md shadow-sm border-l-4 border-blue-400 grid grid-cols-1 md:grid-cols-4 gap-4"
-//                                 >
-//                                   <div className="relative">
-//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                                       SLA Type
-//                                     </label>
-//                                     <input
-//                                       type="text"
-//                                       value={slaType?.slaTypeName || "Unknown"}
-//                                       disabled
-//                                       className="w-full p-2 border rounded-md border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
-//                                     />
-//                                   </div>
-//                                   <div className="relative">
-//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                                       Priority Level
-//                                     </label>
-//                                     <input
-//                                       type="text"
-//                                       value={
-//                                         priority?.priorityName || "Unknown"
-//                                       }
-//                                       disabled
-//                                       className="w-full p-2 border rounded-md border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
-//                                     />
-//                                   </div>
-//                                   <div className="relative">
-//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                                       Response Time (Hours) *
-//                                     </label>
-//                                     <input
-//                                       type="number"
-//                                       name="responseTimeHours"
-//                                       value={rule.responseTimeHours}
-//                                       onChange={(e) =>
-//                                         handleChange(
-//                                           e,
-//                                           undefined,
-//                                           undefined,
-//                                           undefined,
-//                                           undefined,
-//                                           actualIndex
-//                                         )
-//                                       }
-//                                       className={`w-full p-2 border rounded-md ${
-//                                         validationErrors[
-//                                           `responseTimeHours-${actualIndex}`
-//                                         ]
-//                                           ? "border-red-500"
-//                                           : "border-blue-300"
-//                                       } bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-//                                       step="0.1"
-//                                       min="0"
-//                                       placeholder="Enter hours"
-//                                     />
-//                                     {validationErrors[
-//                                       `responseTimeHours-${actualIndex}`
-//                                     ] && (
-//                                       <p className="text-red-500 text-xs mt-1">
-//                                         {
-//                                           validationErrors[
-//                                             `responseTimeHours-${actualIndex}`
-//                                           ]
-//                                         }
-//                                       </p>
-//                                     )}
-//                                   </div>
-//                                   <div className="relative">
-//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-//                                       Resolution Time (Hours) *
-//                                     </label>
-//                                     <input
-//                                       type="number"
-//                                       name="resolutionTimeHours"
-//                                       value={rule.resolutionTimeHours}
-//                                       onChange={(e) =>
-//                                         handleChange(
-//                                           e,
-//                                           undefined,
-//                                           undefined,
-//                                           undefined,
-//                                           undefined,
-//                                           actualIndex
-//                                         )
-//                                       }
-//                                       className={`w-full p-2 border rounded-md ${
-//                                         validationErrors[
-//                                           `resolutionTimeHours-${actualIndex}`
-//                                         ]
-//                                           ? "border-red-500"
-//                                           : "border-blue-300"
-//                                       } bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-//                                       step="0.1"
-//                                       min="0"
-//                                       placeholder="Enter hours"
-//                                     />
-//                                     {validationErrors[
-//                                       `resolutionTimeHours-${actualIndex}`
-//                                     ] && (
-//                                       <p className="text-red-500 text-xs mt-1">
-//                                         {
-//                                           validationErrors[
-//                                             `resolutionTimeHours-${actualIndex}`
-//                                           ]
-//                                         }
-//                                       </p>
-//                                     )}
-//                                   </div>
-//                                 </div>
-//                               );
-//                             })}
-//                           </div>
-//                         </div>
-//                       );
-//                     })
-//                   )
-//                 )}
-//                 <div className="mt-3 p-3 bg-blue-100 rounded-md">
-//                   <p className="text-sm text-blue-700">
-//                     <InformationCircleIcon className="inline h-4 w-4 mr-1" />
-//                     These SLA rules are automatically generated for each service
-//                     scope, covering Corrective Maintenance (CM), Preventive
-//                     Maintenance (PM), and Reactive Maintenance (RM) with their
-//                     respective priority levels. Please provide the response and
-//                     resolution times for each rule.
-//                   </p>
-//                 </div>
-//               </div>
-//             ) : (
-//               <div className="text-center py-8">
-//                 <div className="bg-gray-100 rounded-lg p-6">
-//                   <InformationCircleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-//                   <h5 className="text-lg font-medium text-gray-600 mb-2">
-//                     No SLA Rules Found
-//                   </h5>
-//                   <p className="text-sm text-gray-500 mb-4">
-//                     SLA rules will be automatically generated based on your
-//                     service scopes. Please add service scopes in the Services
-//                     tab first.
-//                   </p>
-//                 </div>
-//               </div>
-//             )}
-
-//             <div className="mt-8 pt-6 border-t border-gray-200">
-//               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
-//                 <h6 className="text-sm font-medium text-gray-700 mb-2">
-//                   Ready to Create Contract?
-//                 </h6>
-//                 <p className="text-xs text-gray-600">
-//                   Review all the information above and click the button below to
-//                   create your contract.
-//                 </p>
-//               </div>
-//               <button
-//                 type="submit"
-//                 className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 font-medium text-lg shadow-lg transition-all duration-200"
-//               >
-//                 Create Contract
-//               </button>
-//             </div>
-//           </div>
-//         )}
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default ContractForm;
-
-// "use client";
-
-// import { useState, useEffect, useCallback, useRef } from "react";
-// import { companyService } from "../services/companyService";
-// import { contractService } from "../services/contractService";
-// import {
-//   ChevronDownIcon,
-//   ChevronUpIcon,
-//   PlusIcon,
-//   TrashIcon,
-//   InformationCircleIcon,
 //   BookmarkIcon,
 //   CheckCircleIcon,
 //   BuildingOfficeIcon,
@@ -3726,6 +552,27 @@
 //     });
 //   };
 
+//   // Handle Day Off button click
+//   const handleDayOff = (timingIndex) => {
+//     setFormData((prev) => {
+//       const newFormData = { ...prev };
+//       newFormData.employeeTimings[timingIndex] = {
+//         ...newFormData.employeeTimings[timingIndex],
+//         dutyStartTime: "00:00",
+//         dutyEndTime: "00:00",
+//       };
+//       return newFormData;
+//     });
+
+//     // Clear validation errors for the day
+//     setValidationErrors((prev) => {
+//       const newErrors = { ...prev };
+//       delete newErrors[`dutyStartTime-${timingIndex}`];
+//       delete newErrors[`dutyEndTime-${timingIndex}`];
+//       return newErrors;
+//     });
+//   };
+
 //   // Validate entire form before submission
 //   const validateFormData = () => {
 //     const errors = {};
@@ -3758,6 +605,11 @@
 
 //     // Employee timings validation
 //     formData.employeeTimings.forEach((timing, timingIndex) => {
+//       // Skip validation if both times are set to "00:00" (Day Off)
+//       if (timing.dutyStartTime === "00:00" && timing.dutyEndTime === "00:00") {
+//         return;
+//       }
+
 //       if (!/^\d{2}:\d{2}$/.test(timing.dutyStartTime))
 //         errors[`dutyStartTime-${timingIndex}`] =
 //           "Valid time format (HH:MM) required.";
@@ -4582,7 +1434,7 @@
 //                       {formData.employeeTimings.map((timing, timingIndex) => (
 //                         <div
 //                           key={timingIndex}
-//                           className="bg-white p-6 rounded-xl shadow-md border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-6 items-center hover:shadow-lg transition-shadow"
+//                           className="bg-white p-6 rounded-xl shadow-md border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-6 items-center hover:shadow-lg transition-shadow"
 //                         >
 //                           <div className="flex items-center">
 //                             <div className="bg-purple-100 p-3 rounded-lg mr-4">
@@ -4595,7 +1447,10 @@
 //                                 {timing.dayOfWeek}
 //                               </h4>
 //                               <p className="text-sm text-gray-500">
-//                                 Working Day
+//                                 {timing.dutyStartTime === "00:00" &&
+//                                 timing.dutyEndTime === "00:00"
+//                                   ? "Day Off"
+//                                   : "Working Day"}
 //                               </p>
 //                             </div>
 //                           </div>
@@ -4666,6 +1521,19 @@
 //                                 {validationErrors[`dutyEndTime-${timingIndex}`]}
 //                               </p>
 //                             )}
+//                           </div>
+
+//                           <div className="space-y-2">
+//                             <label className="block text-sm font-semibold text-gray-700">
+//                               Day Off
+//                             </label>
+//                             <button
+//                               type="button"
+//                               onClick={() => handleDayOff(timingIndex)}
+//                               className="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+//                             >
+//                               Set Day Off
+//                             </button>
 //                           </div>
 //                         </div>
 //                       ))}
@@ -4955,9 +1823,7 @@
 // };
 
 // export default ContractForm;
-
 "use client";
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { companyService } from "../services/companyService";
 import { contractService } from "../services/contractService";
@@ -5001,12 +1867,10 @@ const DraftModal = ({ isOpen, onClose, onLoad, draftData }) => {
               </p>
             </div>
           </div>
-
           <p className="text-gray-600 mb-6">
             We found a saved draft of your contract form. Would you like to
             continue from where you left off?
           </p>
-
           <div className="flex space-x-3">
             <button
               onClick={onLoad}
@@ -5029,7 +1893,6 @@ const DraftModal = ({ isOpen, onClose, onLoad, draftData }) => {
 
 const ContractForm = ({ onSubmit }) => {
   const updateTimeoutRef = useRef(null);
-
   const [formData, setFormData] = useState({
     contractName: "",
     companyId: "",
@@ -5084,16 +1947,29 @@ const ContractForm = ({ onSubmit }) => {
         formData,
         timestamp: new Date().toISOString(),
         activeTab,
+        // Include service data for proper restoration
+        services: services,
+        subServices: subServices,
+        serviceScopes: serviceScopes,
+        slaTypes: slaTypes,
+        priorityLevels: priorityLevels,
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
       setDraftSaved(true);
-
       // Clear the saved indicator after 3 seconds
       setTimeout(() => setDraftSaved(false), 3000);
     } catch (error) {
       console.error("Failed to save draft:", error);
     }
-  }, [formData, activeTab]);
+  }, [
+    formData,
+    activeTab,
+    services,
+    subServices,
+    serviceScopes,
+    slaTypes,
+    priorityLevels,
+  ]);
 
   const loadDraft = useCallback(() => {
     try {
@@ -5129,6 +2005,15 @@ const ContractForm = ({ onSubmit }) => {
     if (pendingDraft) {
       setFormData(pendingDraft.formData);
       setActiveTab(pendingDraft.activeTab || "basic");
+
+      // Restore service data if available
+      if (pendingDraft.services) setServices(pendingDraft.services);
+      if (pendingDraft.subServices) setSubServices(pendingDraft.subServices);
+      if (pendingDraft.serviceScopes)
+        setServiceScopes(pendingDraft.serviceScopes);
+      if (pendingDraft.slaTypes) setSlaTypes(pendingDraft.slaTypes);
+      if (pendingDraft.priorityLevels)
+        setPriorityLevels(pendingDraft.priorityLevels);
     }
     setShowDraftModal(false);
     setPendingDraft(null);
@@ -5138,6 +2023,25 @@ const ContractForm = ({ onSubmit }) => {
     setShowDraftModal(false);
     setPendingDraft(null);
   };
+
+  // Auto-save draft when form data changes
+  useEffect(() => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      if (formData.contractName || formData.companyId) {
+        saveDraft();
+      }
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, [formData, saveDraft]);
 
   // Predefined SLA rules configuration
   const slaRulesConfig = [
@@ -5189,7 +2093,6 @@ const ContractForm = ({ onSubmit }) => {
   // Update SLA rules when service scopes change
   const updateSlaRules = useCallback(() => {
     const newGeneratedRules = generateSlaRulesFromScopes();
-
     setFormData((prev) => {
       const existingAutoRulesMap = new Map();
       prev.slaRules
@@ -5271,6 +2174,7 @@ const ContractForm = ({ onSubmit }) => {
           contractService.getPriorityLevels(slaType.slaTypeId)
         );
         const priorityResponses = await Promise.all(priorityPromises);
+
         const priorityMap = {};
         slaTypesData.forEach((slaType, index) => {
           priorityMap[slaType.slaTypeId] = Array.isArray(
@@ -5352,10 +2256,12 @@ const ContractForm = ({ onSubmit }) => {
       } else if (serviceIndex !== undefined && subServiceIndex !== undefined) {
         newFormData.services[serviceIndex].subServices[subServiceIndex][name] =
           value;
+
         if (name === "subServiceId") {
           newFormData.services[serviceIndex].subServices[
             subServiceIndex
           ].serviceScopes = [{ scopeId: "" }];
+
           if (value) {
             contractService
               .getServiceScopes(value)
@@ -5373,10 +2279,12 @@ const ContractForm = ({ onSubmit }) => {
         }
       } else if (serviceIndex !== undefined) {
         newFormData.services[serviceIndex][name] = value;
+
         if (name === "serviceId") {
           newFormData.services[serviceIndex].subServices = [
             { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
           ];
+
           if (value) {
             contractService
               .getSubServices(value)
@@ -5429,25 +2337,60 @@ const ContractForm = ({ onSubmit }) => {
   };
 
   // Add sub-service
+  // const addSubService = (serviceIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.services[serviceIndex].subServices.push({
+  //       subServiceId: "",
+  //       serviceScopes: [{ scopeId: "" }],
+  //     });
+  //     return newFormData;
+  //   });
+  // };
+
   const addSubService = (serviceIndex) => {
     setFormData((prev) => {
-      const newFormData = { ...prev };
-      newFormData.services[serviceIndex].subServices.push({
-        subServiceId: "",
-        serviceScopes: [{ scopeId: "" }],
-      });
-      return newFormData;
+      const newServices = [...prev.services];
+      newServices[serviceIndex] = {
+        ...newServices[serviceIndex],
+        subServices: [
+          ...newServices[serviceIndex].subServices,
+          { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
+        ],
+      };
+
+      return { ...prev, services: newServices };
     });
   };
-
   // Add service scope
+  // const addServiceScope = (serviceIndex, subServiceIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.services[serviceIndex].subServices[
+  //       subServiceIndex
+  //     ].serviceScopes.push({ scopeId: "" });
+  //     return newFormData;
+  //   });
+  // };
+
   const addServiceScope = (serviceIndex, subServiceIndex) => {
     setFormData((prev) => {
-      const newFormData = { ...prev };
-      newFormData.services[serviceIndex].subServices[
-        subServiceIndex
-      ].serviceScopes.push({ scopeId: "" });
-      return newFormData;
+      const newServices = [...prev.services];
+      newServices[serviceIndex] = {
+        ...newServices[serviceIndex],
+        subServices: [...newServices[serviceIndex].subServices],
+      };
+
+      newServices[serviceIndex].subServices[subServiceIndex] = {
+        ...newServices[serviceIndex].subServices[subServiceIndex],
+        serviceScopes: [
+          ...newServices[serviceIndex].subServices[subServiceIndex]
+            .serviceScopes,
+          { scopeId: "" },
+        ],
+      };
+
+      return { ...prev, services: newServices };
     });
   };
 
@@ -5480,6 +2423,7 @@ const ContractForm = ({ onSubmit }) => {
       newFormData.services[serviceIndex].subServices = newFormData.services[
         serviceIndex
       ].subServices.filter((_, idx) => idx !== subServiceIndex);
+
       if (!newFormData.services[serviceIndex].subServices.length) {
         newFormData.services[serviceIndex].subServices = [
           { subServiceId: "", serviceScopes: [{ scopeId: "" }] },
@@ -5498,6 +2442,7 @@ const ContractForm = ({ onSubmit }) => {
       ].serviceScopes = newFormData.services[serviceIndex].subServices[
         subServiceIndex
       ].serviceScopes.filter((_, idx) => idx !== scopeIndex);
+
       if (
         !newFormData.services[serviceIndex].subServices[subServiceIndex]
           .serviceScopes.length
@@ -5510,7 +2455,27 @@ const ContractForm = ({ onSubmit }) => {
     });
   };
 
-  // Handle Day Off button click
+  // // Handle Day Off button click
+  // const handleDayOff = (timingIndex) => {
+  //   setFormData((prev) => {
+  //     const newFormData = { ...prev };
+  //     newFormData.employeeTimings[timingIndex] = {
+  //       ...newFormData.employeeTimings[timingIndex],
+  //       dutyStartTime: "00:00",
+  //       dutyEndTime: "00:00",
+  //     };
+  //     return newFormData;
+  //   });
+
+  //   // Clear validation errors for the day
+  //   setValidationErrors((prev) => {
+  //     const newErrors = { ...prev };
+  //     delete newErrors[`dutyStartTime-${timingIndex}`];
+  //     delete newErrors[`dutyEndTime-${timingIndex}`];
+  //     return newErrors;
+  //   });
+  // };
+
   const handleDayOff = (timingIndex) => {
     setFormData((prev) => {
       const newFormData = { ...prev };
@@ -5530,7 +2495,6 @@ const ContractForm = ({ onSubmit }) => {
       return newErrors;
     });
   };
-
   // Validate entire form before submission
   const validateFormData = () => {
     const errors = {};
@@ -5592,11 +2556,13 @@ const ContractForm = ({ onSubmit }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const errors = validateFormData();
     if (Object.keys(errors).length) {
       setValidationErrors(errors);
       return;
     }
+
     setValidationErrors({});
 
     try {
@@ -5715,7 +2681,6 @@ const ContractForm = ({ onSubmit }) => {
         onLoad={handleLoadDraft}
         draftData={pendingDraft}
       />
-
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
         <div className="max-w-5xl mx-auto px-4">
           {/* Header with Save Draft Button */}
@@ -5845,7 +2810,6 @@ const ContractForm = ({ onSubmit }) => {
                       <BuildingOfficeIcon className="w-6 h-6 mr-3 text-blue-600" />
                       Contract Information
                     </h3>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 flex items-center">
@@ -6010,7 +2974,6 @@ const ContractForm = ({ onSubmit }) => {
                   </div>
                 </div>
               )}
-
               {activeTab === "services" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -6028,355 +2991,460 @@ const ContractForm = ({ onSubmit }) => {
                     </button>
                   </div>
 
-                  {formData.services.map((service, serviceIndex) => (
-                    <div
-                      key={serviceIndex}
-                      className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-100 overflow-hidden"
-                    >
-                      <div
-                        className="flex items-center justify-between bg-gradient-to-r from-green-100 to-emerald-100 p-6 cursor-pointer hover:from-green-200 hover:to-emerald-200 transition-all duration-200"
-                        onClick={() => toggleCollapse("service", serviceIndex)}
-                      >
-                        <h4 className="text-lg font-semibold text-green-800 flex items-center">
-                          <CogIcon className="w-5 h-5 mr-3" />
-                          Service {serviceIndex + 1}
-                          {service.serviceId && (
-                            <span className="ml-3 text-sm bg-green-600 text-white px-3 py-1 rounded-full">
-                              {services.find(
-                                (s) =>
-                                  s.serviceId.toString() === service.serviceId
-                              )?.serviceName || "Selected"}
-                            </span>
-                          )}
-                        </h4>
-                        <div className="flex items-center space-x-4">
-                          <button
-                            type="button"
-                            className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeService(serviceIndex);
-                            }}
-                            disabled={formData.services.length === 1}
-                            title="Remove Service"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                          {collapsedSections[`service-${serviceIndex}`] ? (
-                            <ChevronUpIcon className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <ChevronDownIcon className="h-5 w-5 text-green-600" />
-                          )}
-                        </div>
-                      </div>
+                  {formData.services.map((service, serviceIndex) => {
+                    // Get all selected sub-service IDs across all services
+                    const allSelectedSubServiceIds = formData.services.flatMap(
+                      (s) =>
+                        s.subServices
+                          .map((ss) => ss.subServiceId)
+                          .filter((id) => id !== "")
+                    );
 
-                      {!collapsedSections[`service-${serviceIndex}`] && (
-                        <div className="p-6 space-y-6">
-                          <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                              Service *
-                              <InformationCircleIcon
-                                className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                title="Select the main service category"
-                              />
-                            </label>
-                            <select
-                              name="serviceId"
-                              value={service.serviceId}
-                              onChange={(e) => handleChange(e, serviceIndex)}
-                              className={`w-full p-4 border-2 rounded-xl transition-all duration-200 ${
-                                validationErrors[`service-${serviceIndex}`]
-                                  ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                  : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
-                              } focus:ring-4 focus:outline-none`}
+                    // Get selected sub-service IDs for this specific service
+                    const serviceSelectedSubServiceIds = service.subServices
+                      .map((ss) => ss.subServiceId)
+                      .filter((id) => id !== "");
+
+                    return (
+                      <div
+                        key={serviceIndex}
+                        className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border border-green-100 overflow-hidden"
+                      >
+                        <div
+                          className="flex items-center justify-between bg-gradient-to-r from-green-100 to-emerald-100 p-6 cursor-pointer hover:from-green-200 hover:to-emerald-200 transition-all duration-200"
+                          onClick={() =>
+                            toggleCollapse("service", serviceIndex)
+                          }
+                        >
+                          <h4 className="text-lg font-semibold text-green-800 flex items-center">
+                            <CogIcon className="w-5 h-5 mr-3" />
+                            Service {serviceIndex + 1}
+                            {service.serviceId && (
+                              <span className="ml-3 text-sm bg-green-600 text-white px-3 py-1 rounded-full">
+                                {services.find(
+                                  (s) =>
+                                    s.serviceId.toString() === service.serviceId
+                                )?.serviceName || "Selected"}
+                              </span>
+                            )}
+                          </h4>
+                          <div className="flex items-center space-x-4">
+                            <button
+                              type="button"
+                              className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeService(serviceIndex);
+                              }}
+                              disabled={formData.services.length === 1}
+                              title="Remove Service"
                             >
-                              <option value="">Select Service</option>
-                              {services.map((s) => (
-                                <option
-                                  key={s.serviceId}
-                                  value={s.serviceId.toString()}
-                                >
-                                  {s.serviceName}
-                                </option>
-                              ))}
-                            </select>
-                            {validationErrors[`service-${serviceIndex}`] && (
-                              <p className="text-red-500 text-sm mt-1 flex items-center">
-                                <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                {validationErrors[`service-${serviceIndex}`]}
-                              </p>
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                            {collapsedSections[`service-${serviceIndex}`] ? (
+                              <ChevronUpIcon className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5 text-green-600" />
                             )}
                           </div>
+                        </div>
 
-                          {/* Sub-services */}
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h5 className="text-md font-semibold text-gray-700">
-                                Sub-Services
-                              </h5>
-                              <button
-                                type="button"
-                                onClick={() => addSubService(serviceIndex)}
-                                className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+                        {!collapsedSections[`service-${serviceIndex}`] && (
+                          <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                Service *
+                                <InformationCircleIcon
+                                  className="ml-2 h-4 w-4 text-gray-400 cursor-help"
+                                  title="Select the main service category"
+                                />
+                              </label>
+                              <select
+                                name="serviceId"
+                                value={service.serviceId}
+                                onChange={(e) => handleChange(e, serviceIndex)}
+                                className={`w-full p-4 border-2 rounded-xl transition-all duration-200 ${
+                                  validationErrors[`service-${serviceIndex}`]
+                                    ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                    : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
+                                } focus:ring-4 focus:outline-none`}
                               >
-                                <PlusIcon className="h-4 w-4 mr-1" />
-                                Add Sub-Service
-                              </button>
+                                <option value="">Select Service</option>
+                                {services.map((s) => (
+                                  <option
+                                    key={s.serviceId}
+                                    value={s.serviceId.toString()}
+                                  >
+                                    {s.serviceName}
+                                  </option>
+                                ))}
+                              </select>
+                              {validationErrors[`service-${serviceIndex}`] && (
+                                <p className="text-red-500 text-sm mt-1 flex items-center">
+                                  <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                  {validationErrors[`service-${serviceIndex}`]}
+                                </p>
+                              )}
                             </div>
 
-                            {service.subServices.map(
-                              (subService, subServiceIndex) => (
-                                <div
-                                  key={subServiceIndex}
-                                  className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-                                >
-                                  <div
-                                    className="flex items-center justify-between bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                                    onClick={() =>
-                                      toggleCollapse(
-                                        "subService",
-                                        serviceIndex,
-                                        subServiceIndex
-                                      )
-                                    }
-                                  >
-                                    <h6 className="text-md font-medium text-gray-700 flex items-center">
-                                      <span className="bg-gray-200 p-1 rounded mr-2">
-                                        🔹
-                                      </span>
-                                      Sub-Service {subServiceIndex + 1}
-                                      {subService.subServiceId && (
-                                        <span className="ml-2 text-xs bg-gray-600 text-white px-2 py-1 rounded-full">
-                                          {subServices[service.serviceId]?.find(
-                                            (ss) =>
-                                              ss.subServiceId.toString() ===
-                                              subService.subServiceId
-                                          )?.subServiceName || "Selected"}
-                                        </span>
-                                      )}
-                                    </h6>
-                                    <div className="flex items-center space-x-2">
-                                      <button
-                                        type="button"
-                                        className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          removeSubService(
+                            {/* Sub-services */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h5 className="text-md font-semibold text-gray-700">
+                                  Sub-Services
+                                  {serviceSelectedSubServiceIds.length > 0 && (
+                                    <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                                      {serviceSelectedSubServiceIds.length}{" "}
+                                      selected
+                                    </span>
+                                  )}
+                                </h5>
+                              </div>
+
+                              {service.subServices.map(
+                                (subService, subServiceIndex) => {
+                                  // Get available sub-services (excluding those already selected in other services)
+                                  const availableSubServices = (
+                                    subServices[service.serviceId] || []
+                                  ).filter(
+                                    (ss) =>
+                                      !allSelectedSubServiceIds.includes(
+                                        ss.subServiceId.toString()
+                                      ) ||
+                                      ss.subServiceId.toString() ===
+                                        subService.subServiceId
+                                  );
+
+                                  // Get selected scope IDs for this sub-service
+                                  const selectedScopeIds =
+                                    subService.serviceScopes
+                                      .map((scope) => scope.scopeId)
+                                      .filter((id) => id !== "");
+
+                                  return (
+                                    <div
+                                      key={subServiceIndex}
+                                      className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+                                    >
+                                      <div
+                                        className="flex items-center justify-between bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+                                        onClick={() =>
+                                          toggleCollapse(
+                                            "subService",
                                             serviceIndex,
                                             subServiceIndex
-                                          );
-                                        }}
-                                        disabled={
-                                          service.subServices.length === 1
+                                          )
                                         }
-                                        title="Remove Sub-Service"
                                       >
-                                        <TrashIcon className="h-4 w-4" />
-                                      </button>
-                                      {collapsedSections[
-                                        `subService-${serviceIndex}-${subServiceIndex}`
-                                      ] ? (
-                                        <ChevronUpIcon className="h-4 w-4 text-gray-600" />
-                                      ) : (
-                                        <ChevronDownIcon className="h-4 w-4 text-gray-600" />
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {!collapsedSections[
-                                    `subService-${serviceIndex}-${subServiceIndex}`
-                                  ] && (
-                                    <div className="p-4 space-y-4">
-                                      <div className="space-y-2">
-                                        <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                                          Sub-Service *
-                                          <InformationCircleIcon
-                                            className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                            title="Select a sub-service"
-                                          />
-                                        </label>
-                                        <select
-                                          name="subServiceId"
-                                          value={subService.subServiceId}
-                                          onChange={(e) =>
-                                            handleChange(
-                                              e,
-                                              serviceIndex,
-                                              subServiceIndex
-                                            )
-                                          }
-                                          className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
-                                            validationErrors[
-                                              `subService-${serviceIndex}-${subServiceIndex}`
-                                            ]
-                                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                              : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
-                                          } focus:ring-4 focus:outline-none`}
-                                          disabled={
-                                            !service.serviceId ||
-                                            !subServices[service.serviceId]
-                                              ?.length
-                                          }
-                                        >
-                                          <option value="">
-                                            Select Sub-Service
-                                          </option>
-                                          {(
-                                            subServices[service.serviceId] || []
-                                          ).map((ss) => (
-                                            <option
-                                              key={ss.subServiceId}
-                                              value={ss.subServiceId.toString()}
-                                            >
-                                              {ss.subServiceName}
-                                            </option>
-                                          ))}
-                                        </select>
-                                        {validationErrors[
-                                          `subService-${serviceIndex}-${subServiceIndex}`
-                                        ] && (
-                                          <p className="text-red-500 text-sm mt-1 flex items-center">
-                                            <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                            {
-                                              validationErrors[
-                                                `subService-${serviceIndex}-${subServiceIndex}`
-                                              ]
-                                            }
-                                          </p>
-                                        )}
-                                      </div>
-
-                                      {/* Service Scopes */}
-                                      <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                          <h6 className="text-sm font-semibold text-gray-700">
-                                            Service Scopes
-                                          </h6>
+                                        <h6 className="text-md font-medium text-gray-700 flex items-center">
+                                          <span className="bg-gray-200 p-1 rounded mr-2">
+                                            🔹
+                                          </span>
+                                          Sub-Service {subServiceIndex + 1}
+                                          {subService.subServiceId && (
+                                            <span className="ml-2 text-xs bg-gray-600 text-white px-2 py-1 rounded-full">
+                                              {subServices[
+                                                service.serviceId
+                                              ]?.find(
+                                                (ss) =>
+                                                  ss.subServiceId.toString() ===
+                                                  subService.subServiceId
+                                              )?.subServiceName || "Selected"}
+                                            </span>
+                                          )}
+                                        </h6>
+                                        <div className="flex items-center space-x-2">
                                           <button
                                             type="button"
-                                            onClick={() =>
-                                              addServiceScope(
+                                            className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              removeSubService(
                                                 serviceIndex,
                                                 subServiceIndex
-                                              )
+                                              );
+                                            }}
+                                            disabled={
+                                              service.subServices.length === 1
                                             }
-                                            className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                                            title="Remove Sub-Service"
                                           >
-                                            <PlusIcon className="h-3 w-3 mr-1" />
-                                            Add Scope
+                                            <TrashIcon className="h-4 w-4" />
                                           </button>
+                                          {collapsedSections[
+                                            `subService-${serviceIndex}-${subServiceIndex}`
+                                          ] ? (
+                                            <ChevronUpIcon className="h-4 w-4 text-gray-600" />
+                                          ) : (
+                                            <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                                          )}
                                         </div>
+                                      </div>
 
-                                        {subService.serviceScopes.map(
-                                          (scope, scopeIndex) => (
-                                            <div
-                                              key={scopeIndex}
-                                              className="bg-blue-50 p-4 rounded-lg border border-blue-200"
+                                      {!collapsedSections[
+                                        `subService-${serviceIndex}-${subServiceIndex}`
+                                      ] && (
+                                        <div className="p-4 space-y-4">
+                                          <div className="space-y-2">
+                                            <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                              Sub-Service *
+                                              {subService.subServiceId && (
+                                                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                                  Selected
+                                                </span>
+                                              )}
+                                            </label>
+                                            <select
+                                              name="subServiceId"
+                                              value={subService.subServiceId}
+                                              onChange={(e) =>
+                                                handleChange(
+                                                  e,
+                                                  serviceIndex,
+                                                  subServiceIndex
+                                                )
+                                              }
+                                              className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                validationErrors[
+                                                  `subService-${serviceIndex}-${subServiceIndex}`
+                                                ]
+                                                  ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                  : "border-gray-200 bg-white focus:border-green-500 focus:ring-green-200"
+                                              } focus:ring-4 focus:outline-none`}
+                                              disabled={
+                                                !service.serviceId ||
+                                                !subServices[service.serviceId]
+                                                  ?.length
+                                              }
                                             >
-                                              <div className="flex items-center justify-between mb-3">
-                                                <h6 className="text-sm font-medium text-blue-800 flex items-center">
-                                                  <span className="bg-blue-200 p-1 rounded mr-2">
-                                                    🎯
-                                                  </span>
-                                                  Scope {scopeIndex + 1}
-                                                </h6>
-                                                <button
-                                                  type="button"
-                                                  className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
-                                                  onClick={() =>
-                                                    removeServiceScope(
-                                                      serviceIndex,
-                                                      subServiceIndex,
-                                                      scopeIndex
-                                                    )
-                                                  }
-                                                  disabled={
-                                                    subService.serviceScopes
-                                                      .length === 1
-                                                  }
-                                                  title="Remove Scope"
-                                                >
-                                                  <TrashIcon className="h-4 w-4" />
-                                                </button>
-                                              </div>
-
-                                              <div className="space-y-2">
-                                                <label className="block text-sm font-semibold text-gray-700 flex items-center">
-                                                  Service Scope *
-                                                  <InformationCircleIcon
-                                                    className="ml-2 h-4 w-4 text-gray-400 cursor-help"
-                                                    title="Define the specific scope of work"
-                                                  />
-                                                </label>
-                                                <select
-                                                  name="scopeId"
-                                                  value={scope.scopeId}
-                                                  onChange={(e) =>
-                                                    handleChange(
-                                                      e,
-                                                      serviceIndex,
-                                                      subServiceIndex,
-                                                      scopeIndex
-                                                    )
-                                                  }
-                                                  className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
-                                                    validationErrors[
-                                                      `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                    ]
-                                                      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                                                      : "border-blue-300 bg-white focus:border-blue-500 focus:ring-blue-200"
-                                                  } focus:ring-4 focus:outline-none`}
-                                                  disabled={
-                                                    !subService.subServiceId ||
-                                                    !serviceScopes[
+                                              <option value="">
+                                                Select Sub-Service
+                                              </option>
+                                              {availableSubServices.map(
+                                                (ss) => (
+                                                  <option
+                                                    key={ss.subServiceId}
+                                                    value={ss.subServiceId.toString()}
+                                                    disabled={
+                                                      allSelectedSubServiceIds.includes(
+                                                        ss.subServiceId.toString()
+                                                      ) &&
+                                                      ss.subServiceId.toString() !==
+                                                        subService.subServiceId
+                                                    }
+                                                  >
+                                                    {ss.subServiceName}
+                                                    {allSelectedSubServiceIds.includes(
+                                                      ss.subServiceId.toString()
+                                                    ) &&
+                                                    ss.subServiceId.toString() !==
                                                       subService.subServiceId
-                                                    ]?.length
-                                                  }
-                                                >
-                                                  <option value="">
-                                                    Select Scope
+                                                      ? " (already selected in another service)"
+                                                      : ""}
                                                   </option>
-                                                  {(
+                                                )
+                                              )}
+                                            </select>
+                                            {validationErrors[
+                                              `subService-${serviceIndex}-${subServiceIndex}`
+                                            ] && (
+                                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                                <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                                {
+                                                  validationErrors[
+                                                    `subService-${serviceIndex}-${subServiceIndex}`
+                                                  ]
+                                                }
+                                              </p>
+                                            )}
+                                          </div>
+
+                                          {/* Service Scopes - only show if sub-service is selected */}
+                                          {subService.subServiceId && (
+                                            <div className="space-y-3">
+                                              <h6 className="text-sm font-semibold text-gray-700 flex items-center">
+                                                Service Scopes
+                                                {selectedScopeIds.length >
+                                                  0 && (
+                                                  <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                                                    {selectedScopeIds.length}{" "}
+                                                    selected
+                                                  </span>
+                                                )}
+                                              </h6>
+
+                                              {subService.serviceScopes.map(
+                                                (scope, scopeIndex) => {
+                                                  // Get available scopes (excluding those already selected in this sub-service)
+                                                  const availableScopes = (
                                                     serviceScopes[
                                                       subService.subServiceId
                                                     ] || []
-                                                  ).map((sc) => (
-                                                    <option
-                                                      key={sc.scopeId}
-                                                      value={sc.scopeId.toString()}
+                                                  ).filter(
+                                                    (sc) =>
+                                                      !selectedScopeIds.includes(
+                                                        sc.scopeId.toString()
+                                                      ) ||
+                                                      sc.scopeId.toString() ===
+                                                        scope.scopeId
+                                                  );
+
+                                                  return (
+                                                    <div
+                                                      key={scopeIndex}
+                                                      className="bg-blue-50 p-4 rounded-lg border border-blue-200"
                                                     >
-                                                      {sc.scopeName}
-                                                    </option>
-                                                  ))}
-                                                </select>
-                                                {validationErrors[
-                                                  `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                ] && (
-                                                  <p className="text-red-500 text-sm mt-1 flex items-center">
-                                                    <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                                                    {
-                                                      validationErrors[
-                                                        `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
-                                                      ]
-                                                    }
-                                                  </p>
-                                                )}
-                                              </div>
+                                                      <div className="flex items-center justify-between mb-3">
+                                                        <h6 className="text-sm font-medium text-blue-800 flex items-center">
+                                                          <span className="bg-blue-200 p-1 rounded mr-2">
+                                                            🎯
+                                                          </span>
+                                                          Scope {scopeIndex + 1}
+                                                          {scope.scopeId && (
+                                                            <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                                              Selected
+                                                            </span>
+                                                          )}
+                                                        </h6>
+                                                        <button
+                                                          type="button"
+                                                          className="text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 p-1 rounded hover:bg-red-100 transition-colors"
+                                                          onClick={() =>
+                                                            removeServiceScope(
+                                                              serviceIndex,
+                                                              subServiceIndex,
+                                                              scopeIndex
+                                                            )
+                                                          }
+                                                          disabled={
+                                                            subService
+                                                              .serviceScopes
+                                                              .length === 1
+                                                          }
+                                                          title="Remove Scope"
+                                                        >
+                                                          <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                      </div>
+                                                      <div className="space-y-2">
+                                                        <label className="block text-sm font-semibold text-gray-700 flex items-center">
+                                                          Service Scope *
+                                                        </label>
+                                                        <select
+                                                          name="scopeId"
+                                                          value={scope.scopeId}
+                                                          onChange={(e) =>
+                                                            handleChange(
+                                                              e,
+                                                              serviceIndex,
+                                                              subServiceIndex,
+                                                              scopeIndex
+                                                            )
+                                                          }
+                                                          className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                            validationErrors[
+                                                              `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                            ]
+                                                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                              : "border-blue-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                          } focus:ring-4 focus:outline-none`}
+                                                          disabled={
+                                                            !subService.subServiceId ||
+                                                            !serviceScopes[
+                                                              subService
+                                                                .subServiceId
+                                                            ]?.length
+                                                          }
+                                                        >
+                                                          <option value="">
+                                                            Select Scope
+                                                          </option>
+                                                          {availableScopes.map(
+                                                            (sc) => (
+                                                              <option
+                                                                key={sc.scopeId}
+                                                                value={sc.scopeId.toString()}
+                                                                disabled={
+                                                                  selectedScopeIds.includes(
+                                                                    sc.scopeId.toString()
+                                                                  ) &&
+                                                                  sc.scopeId.toString() !==
+                                                                    scope.scopeId
+                                                                }
+                                                              >
+                                                                {sc.scopeName}
+                                                                {selectedScopeIds.includes(
+                                                                  sc.scopeId.toString()
+                                                                ) &&
+                                                                sc.scopeId.toString() !==
+                                                                  scope.scopeId
+                                                                  ? " (already selected)"
+                                                                  : ""}
+                                                              </option>
+                                                            )
+                                                          )}
+                                                        </select>
+                                                        {validationErrors[
+                                                          `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                        ] && (
+                                                          <p className="text-red-500 text-sm mt-1 flex items-center">
+                                                            <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                                                            {
+                                                              validationErrors[
+                                                                `scope-${serviceIndex}-${subServiceIndex}-${scopeIndex}`
+                                                              ]
+                                                            }
+                                                          </p>
+                                                        )}
+                                                      </div>
+
+                                                      {/* Add Scope button at bottom of each scope */}
+                                                      <div className="pt-3">
+                                                        <button
+                                                          type="button"
+                                                          onClick={() =>
+                                                            addServiceScope(
+                                                              serviceIndex,
+                                                              subServiceIndex
+                                                            )
+                                                          }
+                                                          className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors text-xs w-full justify-center"
+                                                        >
+                                                          <PlusIcon className="h-3 w-3 mr-1" />
+                                                          Add Another Scope
+                                                        </button>
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                }
+                                              )}
                                             </div>
-                                          )
-                                        )}
-                                      </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            )}
+                                  );
+                                }
+                              )}
+
+                              {/* Add Sub-Service button at bottom of service */}
+                              <div className="pt-4">
+                                <button
+                                  type="button"
+                                  onClick={() => addSubService(serviceIndex)}
+                                  className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm w-full justify-center"
+                                >
+                                  <PlusIcon className="h-4 w-4 mr-1" />
+                                  Add Another Sub-Service
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -6387,7 +3455,6 @@ const ContractForm = ({ onSubmit }) => {
                       <ClockIcon className="w-6 h-6 mr-3 text-purple-600" />
                       Employee Working Hours
                     </h3>
-
                     <div className="grid gap-4">
                       {formData.employeeTimings.map((timing, timingIndex) => (
                         <div
@@ -6481,7 +3548,7 @@ const ContractForm = ({ onSubmit }) => {
                             )}
                           </div>
 
-                          <div className="space-y-2">
+                          {/* <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700">
                               Day Off
                             </label>
@@ -6489,6 +3556,27 @@ const ContractForm = ({ onSubmit }) => {
                               type="button"
                               onClick={() => handleDayOff(timingIndex)}
                               className="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                            >
+                              Set Day Off
+                            </button>
+                          </div> */}
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Day Off
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => handleDayOff(timingIndex)}
+                              disabled={
+                                timing.dutyStartTime === "00:00" &&
+                                timing.dutyEndTime === "00:00"
+                              }
+                              className={`w-full p-3 rounded-lg font-medium ${
+                                timing.dutyStartTime === "00:00" &&
+                                timing.dutyEndTime === "00:00"
+                                  ? "bg-gray-400 text-white cursor-not-allowed"
+                                  : "bg-red-500 text-white hover:bg-red-600"
+                              } transition-colors`}
                             >
                               Set Day Off
                             </button>
@@ -6538,7 +3626,7 @@ const ContractForm = ({ onSubmit }) => {
                         </div>
 
                         {/* Group rules by scope */}
-                        {formData.services.map((service, serviceIndex) =>
+                        {/* {formData.services.map((service, serviceIndex) =>
                           service.subServices.map(
                             (subService, subServiceIndex) =>
                               subService.serviceScopes.map(
@@ -6546,6 +3634,7 @@ const ContractForm = ({ onSubmit }) => {
                                   const scopeRules = autoGeneratedRules.filter(
                                     (rule) => rule.scopeId === scope.scopeId
                                   );
+
                                   if (!scopeRules.length) return null;
 
                                   return (
@@ -6722,8 +3811,252 @@ const ContractForm = ({ onSubmit }) => {
                                 }
                               )
                           )
-                        )}
+                        )} */}
+                        {/* Inside the SLA tab section, replace the scopeRules mapping with this: */}
 
+                        {/* Group rules by scope and sort by SLA type */}
+                        {formData.services.map((service, serviceIndex) =>
+                          service.subServices.map(
+                            (subService, subServiceIndex) =>
+                              subService.serviceScopes.map(
+                                (scope, scopeIndex) => {
+                                  const scopeRules = autoGeneratedRules.filter(
+                                    (rule) => rule.scopeId === scope.scopeId
+                                  );
+
+                                  if (!scopeRules.length) return null;
+
+                                  // Sort rules by RM → CM → PM
+                                  const sortedRules = [...scopeRules].sort(
+                                    (a, b) => {
+                                      // RM comes first (slaTypeId 3)
+                                      if (
+                                        a.slaTypeId === "3" &&
+                                        b.slaTypeId !== "3"
+                                      )
+                                        return -1;
+                                      if (
+                                        a.slaTypeId !== "3" &&
+                                        b.slaTypeId === "3"
+                                      )
+                                        return 1;
+                                      // Then CM (slaTypeId 1)
+                                      if (
+                                        a.slaTypeId === "1" &&
+                                        b.slaTypeId === "2"
+                                      )
+                                        return -1;
+                                      if (
+                                        a.slaTypeId === "2" &&
+                                        b.slaTypeId === "1"
+                                      )
+                                        return 1;
+                                      return 0;
+                                    }
+                                  );
+
+                                  return (
+                                    <div
+                                      key={`${serviceIndex}-${subServiceIndex}-${scopeIndex}`}
+                                      className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8"
+                                    >
+                                      <div className="bg-gradient-to-r from-indigo-100 to-purple-100 p-6 border-b border-gray-200">
+                                        <h5 className="text-lg font-semibold text-indigo-800 flex items-center">
+                                          <span className="bg-indigo-200 p-2 rounded-lg mr-3">
+                                            🎯
+                                          </span>
+                                          {scopeRules[0].scopeName}
+                                        </h5>
+                                        <p className="text-indigo-600 text-sm mt-2">
+                                          Service:{" "}
+                                          {services.find(
+                                            (s) =>
+                                              s.serviceId.toString() ===
+                                              service.serviceId
+                                          )?.serviceName || "Unknown"}{" "}
+                                          → Sub-Service:{" "}
+                                          {subServices[service.serviceId]?.find(
+                                            (ss) =>
+                                              ss.subServiceId.toString() ===
+                                              subService.subServiceId
+                                          )?.subServiceName || "Unknown"}
+                                        </p>
+                                      </div>
+
+                                      <div className="p-6">
+                                        <div className="grid gap-4">
+                                          {sortedRules.map(
+                                            (rule, ruleIndex) => {
+                                              const actualIndex =
+                                                formData.slaRules.findIndex(
+                                                  (r) => r === rule
+                                                );
+                                              const slaType = slaTypes.find(
+                                                (sla) =>
+                                                  sla.slaTypeId.toString() ===
+                                                  rule.slaTypeId
+                                              );
+                                              const priority = priorityLevels[
+                                                rule.slaTypeId
+                                              ]?.find(
+                                                (pl) =>
+                                                  pl.priorityId.toString() ===
+                                                  rule.priorityId
+                                              );
+
+                                              // Determine colors based on SLA type
+                                              let typeBgColor = "bg-blue-100";
+                                              let typeTextColor =
+                                                "text-blue-800";
+                                              let priorityBgColor =
+                                                "bg-purple-100";
+                                              let priorityTextColor =
+                                                "text-purple-800";
+                                              let cardBorderColor =
+                                                "border-blue-400";
+                                              let cardBgColor =
+                                                "from-gray-50 to-blue-50";
+
+                                              if (rule.slaTypeId === "3") {
+                                                // RM
+                                                typeBgColor = "bg-red-100";
+                                                typeTextColor = "text-red-800";
+                                                priorityBgColor =
+                                                  "bg-orange-100";
+                                                priorityTextColor =
+                                                  "text-orange-800";
+                                                cardBorderColor =
+                                                  "border-red-400";
+                                                cardBgColor =
+                                                  "from-gray-50 to-red-50";
+                                              } else if (
+                                                rule.slaTypeId === "2"
+                                              ) {
+                                                // PM
+                                                typeBgColor = "bg-green-100";
+                                                typeTextColor =
+                                                  "text-green-800";
+                                                priorityBgColor = "bg-teal-100";
+                                                priorityTextColor =
+                                                  "text-teal-800";
+                                                cardBorderColor =
+                                                  "border-green-400";
+                                                cardBgColor =
+                                                  "from-gray-50 to-green-50";
+                                              }
+
+                                              return (
+                                                <div
+                                                  key={actualIndex}
+                                                  className={`bg-gradient-to-r ${cardBgColor} p-6 rounded-xl border-l-4 ${cardBorderColor} shadow-sm hover:shadow-md transition-shadow`}
+                                                >
+                                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        SLA Type
+                                                      </label>
+                                                      <div
+                                                        className={`${typeBgColor} ${typeTextColor} px-4 py-3 rounded-lg font-medium text-center`}
+                                                      >
+                                                        {slaType?.slaTypeName ||
+                                                          "Unknown"}
+                                                      </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Priority Level
+                                                      </label>
+                                                      <div
+                                                        className={`${priorityBgColor} ${priorityTextColor} px-4 py-3 rounded-lg font-medium text-center`}
+                                                      >
+                                                        {priority?.priorityName ||
+                                                          "Unknown"}
+                                                      </div>
+                                                    </div>
+
+                                                    {/* Rest of the rule fields remain the same */}
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Response Time (Hours) *
+                                                      </label>
+                                                      <input
+                                                        type="number"
+                                                        name="responseTimeHours"
+                                                        value={
+                                                          rule.responseTimeHours
+                                                        }
+                                                        onChange={(e) =>
+                                                          handleChange(
+                                                            e,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            actualIndex
+                                                          )
+                                                        }
+                                                        className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                          validationErrors[
+                                                            `responseTimeHours-${actualIndex}`
+                                                          ]
+                                                            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                            : "border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                        } focus:ring-4 focus:outline-none`}
+                                                        step="0.1"
+                                                        min="0"
+                                                        placeholder="Enter hours"
+                                                      />
+                                                      {/* Error message remains the same */}
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                      <label className="block text-sm font-semibold text-gray-700">
+                                                        Resolution Time (Hours)
+                                                        *
+                                                      </label>
+                                                      <input
+                                                        type="number"
+                                                        name="resolutionTimeHours"
+                                                        value={
+                                                          rule.resolutionTimeHours
+                                                        }
+                                                        onChange={(e) =>
+                                                          handleChange(
+                                                            e,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            undefined,
+                                                            actualIndex
+                                                          )
+                                                        }
+                                                        className={`w-full p-3 border-2 rounded-lg transition-all duration-200 ${
+                                                          validationErrors[
+                                                            `resolutionTimeHours-${actualIndex}`
+                                                          ]
+                                                            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                                                            : "border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-200"
+                                                        } focus:ring-4 focus:outline-none`}
+                                                        step="0.1"
+                                                        min="0"
+                                                        placeholder="Enter hours"
+                                                      />
+                                                      {/* Error message remains the same */}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )
+                          )
+                        )}
                         {/* Submit Button - Only in SLA Rules Tab */}
                         <div className="pt-6 border-t border-gray-200">
                           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6">
