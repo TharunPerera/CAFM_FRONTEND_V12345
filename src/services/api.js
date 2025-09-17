@@ -58,27 +58,19 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  console.log("[API CALL]", config.method.toUpperCase(), config.url);
+  console.trace(); // shows the component/file that triggered the request
+  return config;
+});
+
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
-// Debug interceptor - improved version
-api.interceptors.request.use((config) => {
-  if (import.meta.env.DEV) {
-    console.group(`[API CALL] ${config.method?.toUpperCase()} ${config.url}`);
-    console.log("Full Config:", config);
 
-    // Create a better error to get a useful stack trace
-    const error = new Error("API Call Stack Trace");
-    console.log("Stack Trace:");
-    console.log(error.stack);
-
-    console.groupEnd();
-  }
-  return config;
-});
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
