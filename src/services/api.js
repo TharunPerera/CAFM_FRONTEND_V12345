@@ -58,8 +58,18 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  // Block all calls if no token (user not logged in)
+  if (!token) {
+    console.warn("[BLOCKED API CALL]", config.method.toUpperCase(), config.url);
+    return Promise.reject({ message: "Blocked API call - no token", config });
+  }
+
+  // If token exists, add Authorization
+  config.headers.Authorization = `Bearer ${token}`;
   console.log("[API CALL]", config.method.toUpperCase(), config.url);
-  console.trace(); // shows the component/file that triggered the request
+  console.trace(); // shows where call was triggered
   return config;
 });
 
