@@ -64,10 +64,9 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-// api.js
 api.interceptors.request.use((config) => {
   console.log("[API CALL]", config.method.toUpperCase(), config.url);
+  console.trace(); // Shows where in your code this call originated
   return config;
 });
 
