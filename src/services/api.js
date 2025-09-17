@@ -64,12 +64,21 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+// Debug interceptor - improved version
 api.interceptors.request.use((config) => {
-  console.log("[API CALL]", config.method.toUpperCase(), config.url);
-  console.trace(); // Shows where in your code this call originated
+  if (import.meta.env.DEV) {
+    console.group(`[API CALL] ${config.method?.toUpperCase()} ${config.url}`);
+    console.log("Full Config:", config);
+
+    // Create a better error to get a useful stack trace
+    const error = new Error("API Call Stack Trace");
+    console.log("Stack Trace:");
+    console.log(error.stack);
+
+    console.groupEnd();
+  }
   return config;
 });
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
