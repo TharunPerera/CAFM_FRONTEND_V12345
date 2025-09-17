@@ -78,13 +78,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post(
-        "http://localhost:9099/api/auth/login",
-        {
-          username,
-          password,
-        }
-      );
+      // const response = await axios.post(
+      //   "http://localhost:9099/api/auth/login",
+      //   {
+      //     username,
+      //     password,
+      //   }
+      // );
+
+      // AuthContext.js
+      const response = await api.post("/auth/login", {
+        username,
+        password,
+      });
 
       const { token, refreshToken } = response.data;
       localStorage.setItem("token", token);
