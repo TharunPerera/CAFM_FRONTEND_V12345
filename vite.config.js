@@ -6,27 +6,13 @@
 //   plugins: [react()],
 // });
 
-// import { defineConfig } from "vite";
-// import react from "@vitejs/plugin-react";
-
-// // https://vitejs.dev/config/
-// export default defineConfig({
-//   plugins: [react()],
-//   define: {
-//     global: "window", // Polyfill global to window
-//   },
-// });
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import removeConsole from "vite-plugin-remove-console";
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    removeConsole(), // 🚀 Automatically removes console logs in production
-  ],
+  plugins: [react()],
   define: {
-    global: "window",
+    global: "window", // Polyfill global to window
   },
 });
