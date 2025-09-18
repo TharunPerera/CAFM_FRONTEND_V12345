@@ -189,7 +189,11 @@ export const connectWebSocket = (onConnectCallback, onErrorCallback) => {
       return null;
     }
 
-    const socket = new SockJS(`http://localhost:9099/ws?access_token=${token}`);
+    // const socket = new SockJS(`http://localhost:9099/ws?access_token=${token}`);
+    const socket = new SockJS(
+      `${import.meta.env.VITE_WS_URL}/ws?access_token=${token}`
+    );
+
     stompClient = new Client({
       webSocketFactory: () => socket,
       connectHeaders: {

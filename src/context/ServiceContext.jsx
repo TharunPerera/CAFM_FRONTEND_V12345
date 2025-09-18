@@ -32,8 +32,15 @@ export const ServiceProvider = ({ children }) => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   fetchData();
+  // }, [fetchData]);
+
   useEffect(() => {
-    fetchData();
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchData();
+    }
   }, [fetchData]);
 
   const addService = useCallback((service) => {
